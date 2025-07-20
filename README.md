@@ -1,2 +1,0 @@
-# ParkHriste
-React projekt

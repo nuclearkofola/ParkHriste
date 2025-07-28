@@ -1,0 +1,33 @@
+
+.footer {
+    background: rgb(215, 169, 0);
+    padding: 20px;
+    margin-block: 30px;
+    display: flex;
+    justify-content:space-between;
+}
+
+.menu {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+}
+
+.menu a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 10px 20px;
+    border: 1px solid black;
+    border-radius: 4px;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+    white-space: nowrap;
+}
+
+.menu a:hover {
+    background: white;
+    color: rgb(215, 169, 0);
+}

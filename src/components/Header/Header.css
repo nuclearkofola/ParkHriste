@@ -1,33 +1,19 @@
-
 .header {
-    background: rgb(215, 169, 0);
-    padding: 20px;
-    margin-block: 30px;
-    display: flex;
-    justify-content:space-between;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #f8fafc;
 }
-
 .menu {
-    display: flex;
-    gap: 20px;
-    align-items: stretch;
+  display: flex;
+  gap: 1rem;
 }
-
-.menu a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 10px 20px;
-    border: 1px solid black;
-    border-radius: 4px;
-    text-decoration: none;
-    color: inherit;
-    height: 100%;
-    white-space: nowrap;
+.menu-link {
+  text-decoration: none;
+  color: #1e3a8a;
+  font-weight: 500;
 }
-
-.menu a:hover {
-    background: white;
-    color: rgb(215, 169, 0);
+.menu-link:hover {
+  text-decoration: underline;
 }

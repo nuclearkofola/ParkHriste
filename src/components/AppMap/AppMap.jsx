@@ -16,7 +16,7 @@ const selectedIcon = new L.Icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [30, 48], // Větší ikona pro zvýraznění
+  iconSize: [30, 48],
   iconAnchor: [15, 48],
   popupAnchor: [0, -48],
 });
@@ -67,17 +67,14 @@ const AppMap = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Načtení městských částí
         const districtsData = await fetchGolemioData('/v2/citydistricts', apiKey);
         console.log('Městské části:', districtsData);
         setCityDistricts(districtsData);
 
-        // Načtení zahrad
         const gardensData = await fetchGolemioData('/v2/gardens', apiKey);
         console.log('Zahrady:', gardensData);
         setGardens(gardensData);
 
-        // Načtení hřišť
         const playgroundsData = await fetchGolemioData('/v2/playgrounds', apiKey);
         console.log('Hřiště:', playgroundsData);
         setPlaygrounds(playgroundsData);
@@ -108,7 +105,7 @@ const AppMap = () => {
     opacity: 0.8,
   };
 
-  // Styl pro zvýrazněnou vrstvu (pro polygony)
+  // Styl pro zvýrazněnou vrstvu
   const selectedStyle = {
     color: '#ff0000',
     weight: 4,
@@ -116,25 +113,91 @@ const AppMap = () => {
   };
 
   // Funkce pro vytvoření popupu
-  const createPopupContent = (properties) => {
+  const createPopupContent = (feature) => {
+    const properties = feature.properties;
     if (!properties) {
-      return '<div><h3>Není název</h3><p>Žádné informace</p></div>';
+      return '<div class="p-4 bg-white rounded-lg shadow-md max-w-md"><h3 class="text-xl font-bold text-black">Není název</h3><p class="text-gray-600">Žádné informace</p></div>';
     }
 
-    const { name, address, description, type, equipment, surface } = properties;
+    const { name, address, description, type, equipment, surface, district, url, updated_at, properties: extraProperties, id, image } = properties;
+    const coordinates = feature.geometry.type === 'Point' ? feature.geometry.coordinates : null;
+
+    // Zpracování adresy
+    const addressString = address
+      ? address.address_formatted
+        ? address.address_formatted
+        : `${address.street || ''}${address.street ? ', ' : ''}${address.city || ''} ${address.zip || ''}`.trim()
+      : 'Adresa není k dispozici';
+
+    // Zpracování vybavenosti (mapování na sekce podle hristepraha.cz)
+    let facilities = '';
+    let refreshments = '';
+    let transport = '';
+    if (extraProperties) {
+      facilities = extraProperties
+        .filter(prop => ['hriste', 'wc'].includes(prop.id))
+        .map(prop => `<p><strong>${prop.description}:</strong> ${prop.value}</p>`)
+        .join('');
+      refreshments = extraProperties
+        .filter(prop => prop.id === 'restaurace')
+        .map(prop => `<p>${prop.value}</p>`)
+        .join('');
+      transport = extraProperties
+        .filter(prop => ['mhd', 'parking'].includes(prop.id))
+        .map(prop => `<p><strong>${prop.description}:</strong> ${prop.value}</p>`)
+        .join('');
+    }
+
+    // Zpracování doporučení (použijeme např. 'misto' z extraProperties)
+    const recommendations = extraProperties
+      ? extraProperties
+          .filter(prop => prop.id === 'misto')
+          .map(prop => `<p>${prop.value}</p>`)
+          .join('')
+      : '';
+
+    // Zpracování obrázku
+    const imageString = image?.url
+      ? `<img src="${image.url}" alt="${name || 'Obrázek místa'}" class="w-full h-48 object-cover rounded-md mb-4" />`
+      : '';
+
+    // Odkaz na navigaci (Mapy.cz)
+    const navigationLink = coordinates
+      ? `<p><a href="https://mapy.cz/zakladni?x=${coordinates[0]}&y=${coordinates[1]}&z=17" target="_blank" class="text-blue-600 underline hover:text-blue-800">Navigovat na Mapy.cz</a></p>`
+      : '';
+
+    // Struktura popupu podle hristepraha.cz
     const info = [
-      name && `<p><strong>Název:</strong> ${name}</p>`,
-      address && `<p><strong>Adresa:</strong> ${address}</p>`,
-      description && `<p><strong>Popis:</strong> ${description}</p>`,
-      type && `<p><strong>Typ:</strong> ${type}</p>`,
-      equipment && `<p><strong>Vybavení:</strong> ${equipment}</p>`,
-      surface && `<p><strong>Povrch:</strong> ${surface}</p>`,
+      imageString,
+      name && `<h2 class="text-2xl font-bold text-black mb-3">${name}</h2>`,
+      description && `
+        <h3 class="text-lg font-semibold text-black mt-4 mb-2">Popis</h3>
+        <p class="text-gray-600">${description}</p>`,
+      recommendations && `
+        <h3 class="text-lg font-semibold text-black mt-4 mb-2">Doporučujeme</h3>
+        ${recommendations}`,
+      facilities && `
+        <h3 class="text-lg font-semibold text-black mt-4 mb-2">Sociální zařízení</h3>
+        ${facilities}`,
+      refreshments && `
+        <h3 class="text-lg font-semibold text-black mt-4 mb-2">Občerstvení</h3>
+        ${refreshments}`,
+      transport && `
+        <h3 class="text-lg font-semibold text-black mt-4 mb-2">Doprava</h3>
+        ${transport}`,
+      address && `
+        <h3 class="text-lg font-semibold text-black mt-4 mb-2">Adresa</h3>
+        <p class="text-gray-600">${addressString}</p>
+        ${navigationLink}`,
+      district && `<p class="text-gray-600 mt-2"><strong>Městská část:</strong> ${district}</p>`,
+      id && `<p class="text-gray-600 mt-2"><strong>ID:</strong> ${id}</p>`,
+      updated_at && `<p class="text-gray-600 mt-2"><strong>Poslední aktualizace:</strong> ${new Date(updated_at).toLocaleDateString('cs-CZ')}</p>`,
+      url && `<p class="text-gray-600 mt-2"><strong>Web:</strong> <a href="${url}" target="_blank" class="text-blue-600 underline hover:text-blue-800">Více informací</a></p>`,
     ].filter(Boolean).join('');
 
     return `
-      <div class="popup-content p-2 max-w-xs">
-        <h3 class="text-lg font-bold">${name || 'Není název'}</h3>
-        ${info || '<p>Žádné další informace</p>'}
+      <div class="p-4 bg-white rounded-lg shadow-md max-w-md overflow-y-auto max-h-[80vh]">
+        ${info || '<p class="text-gray-600">Žádné další informace</p>'}
       </div>
     `;
   };
@@ -142,10 +205,9 @@ const AppMap = () => {
   // Funkce pro zpracování kliknutí na vrstvu
   const onEachFeature = (feature, layer) => {
     if (feature.properties) {
-      layer.bindPopup(createPopupContent(feature.properties));
+      layer.bindPopup(createPopupContent(feature));
 
       layer.on('click', () => {
-        // Reset stylu předchozí vrstvy
         if (selectedLayer && selectedLayer !== layer) {
           if (selectedLayer.setStyle) {
             selectedLayer.setStyle(selectedLayer.options.defaultStyle);
@@ -154,7 +216,6 @@ const AppMap = () => {
           }
         }
 
-        // Zvýraznění aktuální vrstvy
         if (feature.geometry.type === 'Point') {
           layer.setIcon(selectedIcon);
         } else {

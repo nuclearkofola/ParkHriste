@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+import './AppMap.css';
 import L from 'leaflet';
 
 // Oprava pro ikony Leaflet
@@ -11,14 +11,30 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-// Vlastní ikona pro zvýrazněné body
-const selectedIcon = new L.Icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [30, 48],
-  iconAnchor: [15, 48],
-  popupAnchor: [0, -48],
+// Ikona pro hřiště
+const selectedIcon = L.divIcon({
+  html: `
+    <div class="custom-icon playground-icon">
+      <span>☢️</span>
+    </div>
+  `,
+  iconSize: [60, 60],
+  iconAnchor: [30, 60],
+  popupAnchor: [0, -60],
+  className: '',
+});
+
+// Ikona pro parky
+const gardenIcon = L.divIcon({
+  html: `
+    <div class="custom-icon garden-icon">
+      <span>🚩</span>
+    </div>
+  `,
+  iconSize: [60, 60],
+  iconAnchor: [30, 60],
+  popupAnchor: [0, -60],
+  className: '',
 });
 
 // Funkce pro načtení dat z Golemio API
@@ -30,33 +46,26 @@ const fetchGolemioData = async (endpoint, apiKey) => {
       },
     });
 
-    console.log(`Endpoint: ${endpoint}, Status: ${response.status}`);
-    console.log('Content-Type:', response.headers.get('content-type'));
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Chyba ${response.status}: ${errorText}`);
       throw new Error(`Chyba při načítání dat z ${endpoint}: ${response.status} ${response.statusText}`);
     }
 
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const errorText = await response.text();
-      console.error(`Neplatný formát odpovědi z ${endpoint}: ${errorText}`);
       throw new Error(`Odpověď z ${endpoint} není JSON`);
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
-    console.error('Chyba při fetch:', error);
+    console.error(`Chyba při fetch z ${endpoint}:`, error);
     return null;
   }
 };
 
 // Hlavní komponenta AppMap
 const AppMap = () => {
-  const [cityDistricts, setCityDistricts] = useState(null);
   const [gardens, setGardens] = useState(null);
   const [playgrounds, setPlaygrounds] = useState(null);
   const [error, setError] = useState(null);
@@ -67,16 +76,18 @@ const AppMap = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const districtsData = await fetchGolemioData('/v2/citydistricts', apiKey);
-        console.log('Městské části:', districtsData);
-        setCityDistricts(districtsData);
+        if (!apiKey) {
+          throw new Error('API klíč není nastaven');
+        }
 
         const gardensData = await fetchGolemioData('/v2/gardens', apiKey);
-        console.log('Zahrady:', gardensData);
-        setGardens(gardensData);
+        if (gardensData && gardensData.type === 'FeatureCollection' && Array.isArray(gardensData.features)) {
+          setGardens(gardensData);
+        } else {
+          setGardens(null);
+        }
 
         const playgroundsData = await fetchGolemioData('/v2/playgrounds', apiKey);
-        console.log('Hřiště:', playgroundsData);
         setPlaygrounds(playgroundsData);
       } catch (err) {
         setError(err.message);
@@ -84,21 +95,14 @@ const AppMap = () => {
     };
 
     loadData();
+    return () => {
+      setGardens(null);
+      setPlaygrounds(null);
+      setError(null);
+    };
   }, [apiKey]);
 
   // Styly pro GeoJSON vrstvy
-  const districtStyle = {
-    color: '#ff7800',
-    weight: 2,
-    opacity: 0.65,
-  };
-
-  const gardenStyle = {
-    color: '#00ff00',
-    weight: 2,
-    opacity: 0.8,
-  };
-
   const playgroundStyle = {
     color: '#0000ff',
     weight: 2,
@@ -110,63 +114,97 @@ const AppMap = () => {
     color: '#ff0000',
     weight: 4,
     opacity: 1,
+    fillOpacity: 0.5,
+  };
+
+  // Mapování ID vlastností z playgrounds na klíče
+  const propertyIdMap = {
+    1: 'hriste', // Plocha pro míčové hry
+    2: 'hriste', // In line stezky, skate parky, BMX areály, dopravní hřiště
+    3: 'sport', // Jiné sporty (lanová centra, minigolf, discgolf, boby)
+    4: 'sport', // Fitness prvky
+    5: 'voda', // Voda-hydrant nebo umyvadlo
+    6: 'wc', // WC na hřišti nebo v bezprostřední blízkosti
+    7: 'spravce', // Správce na hřišti
+    8: 'stin', // Částečný stín
+    9: 'kultura', // Kultura (muzea, galerie, venkovní sochy, divadla, planetária)
+    10: 'naucne', // Naučné stezky
+    11: 'zoo', // ZOO koutky
+    12: 'restaurace', // Restaurace nebo kavárny v bezprostřední blízkosti
+    13: 'voda', // Bazény, vodní atrakce, vodní soustavy
   };
 
   // Funkce pro vytvoření popupu
   const createPopupContent = (feature) => {
-    const properties = feature.properties;
+    const properties = feature.properties || {};
     if (!properties) {
       return '<div class="p-4 bg-white rounded-lg shadow-md max-w-md"><h3 class="text-xl font-bold text-black">Není název</h3><p class="text-gray-600">Žádné informace</p></div>';
     }
 
-    const { name, address, description, type, equipment, surface, district, url, updated_at, properties: extraProperties, id, image } = properties;
+    const { name = 'Není název', address = {}, description = '', content = '', perex = '', type = '', equipment = '', surface = '', district = '', url = '', updated_at = '', properties: extraProperties = [], image = {} } = properties;
     const coordinates = feature.geometry.type === 'Point' ? feature.geometry.coordinates : null;
 
     // Zpracování adresy
-    const addressString = address
+    const addressString = address.address_formatted
       ? address.address_formatted
-        ? address.address_formatted
-        : `${address.street || ''}${address.street ? ', ' : ''}${address.city || ''} ${address.zip || ''}`.trim()
-      : 'Adresa není k dispozici';
+      : [
+          address.street_address || address.street || '',
+          address.address_locality || address.city || '',
+          address.postal_code || address.zip || '',
+        ].filter(Boolean).join(', ').trim() || 'Adresa není k dispozici';
 
-    // Zpracování vybavenosti (mapování na sekce podle hristepraha.cz)
+    // Zpracování vybavenosti a dalších vlastností
     let facilities = '';
     let refreshments = '';
     let transport = '';
-    if (extraProperties) {
+    let otherProperties = '';
+    let recommendations = '';
+    if (Array.isArray(extraProperties) && extraProperties.length > 0) {
       facilities = extraProperties
-        .filter(prop => ['hriste', 'wc'].includes(prop.id))
-        .map(prop => `<p><strong>${prop.description}:</strong> ${prop.value}</p>`)
+        .filter(prop => prop?.id && ['hriste', 'wc', 'voda', 'zoo', 'stin', 'vek', 'spravce', 'kultura'].includes(propertyIdMap[prop.id]))
+        .map(prop => `<p><strong>${prop.description || 'Není popis'}:</strong> ${prop.value && prop.value.trim() ? prop.value : 'Ne'}</p>`)
         .join('');
       refreshments = extraProperties
-        .filter(prop => prop.id === 'restaurace')
-        .map(prop => `<p>${prop.value}</p>`)
+        .filter(prop => prop?.id === 12)
+        .map(prop => `<p><strong>Občerstvení:</strong> ${prop.value && prop.value.trim() ? prop.value : 'Ne'}</p>`)
         .join('');
       transport = extraProperties
-        .filter(prop => ['mhd', 'parking'].includes(prop.id))
-        .map(prop => `<p><strong>${prop.description}:</strong> ${prop.value}</p>`)
+        .filter(prop => prop?.id && ['mhd', 'parking'].includes(prop.id))
+        .map(prop => `<p><strong>${prop.description || 'Není popis'}:</strong> ${prop.value && prop.value.trim() ? prop.value : 'Ne'}</p>`)
+        .join('');
+      otherProperties = extraProperties
+        .filter(prop => prop?.id && !['hriste', 'wc', 'voda', 'zoo', 'stin', 'vek', 'spravce', 'kultura', 'restaurace', 'mhd', 'parking', 'misto', 'brusle', 'cesty', 'doba', 'kolo', 'provoz', 'sport', 'naucne'].includes(prop.id) && prop.value && prop.value.trim())
+        .map(prop => `<p><strong>${prop.description || 'Není popis'}:</strong> ${prop.value}</p>`)
+        .join('');
+      recommendations = extraProperties
+        .filter(prop => prop?.id === 10 && prop.description === 'Naučné stezky')
+        .map(prop => `<p>${prop.value || 'Není popis'}</p>`)
         .join('');
     }
 
-    // Zpracování doporučení (použijeme např. 'misto' z extraProperties)
-    const recommendations = extraProperties
-      ? extraProperties
-          .filter(prop => prop.id === 'misto')
-          .map(prop => `<p>${prop.value}</p>`)
-          .join('')
-      : '';
-
     // Zpracování obrázku
-    const imageString = image?.url
+    const imageString = image.url
       ? `<img src="${image.url}" alt="${name || 'Obrázek místa'}" class="w-full h-48 object-cover rounded-md mb-4" />`
       : '';
 
-    // Odkaz na navigaci (Mapy.cz)
+    // Odkaz na navigaci
     const navigationLink = coordinates
       ? `<p><a href="https://mapy.cz/zakladni?x=${coordinates[0]}&y=${coordinates[1]}&z=17" target="_blank" class="text-blue-600 underline hover:text-blue-800">Navigovat na Mapy.cz</a></p>`
       : '';
 
-    // Struktura popupu podle hristepraha.cz
+    // Podrobnosti pro hřiště a parky
+    const details = (type === 'playground' || type === 'garden' || !type) && (perex || content || equipment || surface || facilities)
+      ? `
+        <h3 class="text-lg font-semibold text-black mt-4 mb-2">${type === 'playground' || !type ? 'Podrobnosti o hřišti' : 'Sociální zařízení'}</h3>
+        ${perex ? `<p><strong>Krátký popis:</strong> ${perex}</p>` : ''}
+        ${content ? `<p><strong>Podrobný popis:</strong> ${content}</p>` : ''}
+        ${equipment ? `<p><strong>Vybavení:</strong> ${equipment}</p>` : ''}
+        ${surface ? `<p><strong>Povrch:</strong> ${surface}</p>` : ''}
+        ${facilities ? `${facilities}` : ''}
+      `
+      : facilities;
+
+    // Struktura popupu
     const info = [
       imageString,
       name && `<h2 class="text-2xl font-bold text-black mb-3">${name}</h2>`,
@@ -176,21 +214,23 @@ const AppMap = () => {
       recommendations && `
         <h3 class="text-lg font-semibold text-black mt-4 mb-2">Doporučujeme</h3>
         ${recommendations}`,
-      facilities && `
-        <h3 class="text-lg font-semibold text-black mt-4 mb-2">Sociální zařízení</h3>
-        ${facilities}`,
+      details && `
+        <h3 class="text-lg font-semibold text-black mt-4 mb-2">${type === 'playground' || !type ? 'Podrobnosti o hřišti' : 'Sociální zařízení'}</h3>
+        ${details}`,
       refreshments && `
         <h3 class="text-lg font-semibold text-black mt-4 mb-2">Občerstvení</h3>
         ${refreshments}`,
       transport && `
         <h3 class="text-lg font-semibold text-black mt-4 mb-2">Doprava</h3>
         ${transport}`,
-      address && `
+      otherProperties && `
+        <h3 class="text-lg font-semibold text-black mt-4 mb-2">Další informace</h3>
+        ${otherProperties}`,
+      addressString !== 'Adresa není k dispozici' && `
         <h3 class="text-lg font-semibold text-black mt-4 mb-2">Adresa</h3>
         <p class="text-gray-600">${addressString}</p>
         ${navigationLink}`,
       district && `<p class="text-gray-600 mt-2"><strong>Městská část:</strong> ${district}</p>`,
-      id && `<p class="text-gray-600 mt-2"><strong>ID:</strong> ${id}</p>`,
       updated_at && `<p class="text-gray-600 mt-2"><strong>Poslední aktualizace:</strong> ${new Date(updated_at).toLocaleDateString('cs-CZ')}</p>`,
       url && `<p class="text-gray-600 mt-2"><strong>Web:</strong> <a href="${url}" target="_blank" class="text-blue-600 underline hover:text-blue-800">Více informací</a></p>`,
     ].filter(Boolean).join('');
@@ -210,14 +250,14 @@ const AppMap = () => {
       layer.on('click', () => {
         if (selectedLayer && selectedLayer !== layer) {
           if (selectedLayer.setStyle) {
-            selectedLayer.setStyle(selectedLayer.options.defaultStyle);
+            selectedLayer.setStyle(selectedLayer.options.defaultStyle || playgroundStyle);
           } else if (selectedLayer.setIcon) {
-            selectedLayer.setIcon(new L.Icon.Default());
+            selectedLayer.setIcon(feature.properties.type === 'garden' ? gardenIcon : selectedIcon);
           }
         }
 
         if (feature.geometry.type === 'Point') {
-          layer.setIcon(selectedIcon);
+          layer.setIcon(feature.properties.type === 'garden' ? gardenIcon : selectedIcon);
         } else {
           layer.setStyle(selectedStyle);
         }
@@ -225,20 +265,6 @@ const AppMap = () => {
         setSelectedLayer(layer);
         layer.openPopup();
       });
-    }
-  };
-
-  // Funkce pro nastavení výchozího stylu vrstvy
-  const getDefaultStyle = (type) => {
-    switch (type) {
-      case 'district':
-        return districtStyle;
-      case 'garden':
-        return gardenStyle;
-      case 'playground':
-        return playgroundStyle;
-      default:
-        return districtStyle;
     }
   };
 
@@ -258,22 +284,12 @@ const AppMap = () => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {cityDistricts && (
-          <GeoJSON
-            data={cityDistricts}
-            style={districtStyle}
-            onEachFeature={(feature, layer) => {
-              layer.options.defaultStyle = districtStyle;
-              onEachFeature(feature, layer);
-            }}
-          />
-        )}
         {gardens && (
           <GeoJSON
             data={gardens}
-            style={gardenStyle}
+            pointToLayer={(feature, latlng) => L.marker(latlng, { icon: gardenIcon })}
             onEachFeature={(feature, layer) => {
-              layer.options.defaultStyle = gardenStyle;
+              feature.properties.type = 'garden'; // Přidání typu pro parky
               onEachFeature(feature, layer);
             }}
           />
@@ -282,8 +298,9 @@ const AppMap = () => {
           <GeoJSON
             data={playgrounds}
             style={playgroundStyle}
-            pointToLayer={(feature, latlng) => L.marker(latlng)}
+            pointToLayer={(feature, latlng) => L.marker(latlng, { icon: selectedIcon })}
             onEachFeature={(feature, layer) => {
+              feature.properties.type = 'playground'; // Přidání typu pro hřiště
               layer.options.defaultStyle = playgroundStyle;
               onEachFeature(feature, layer);
             }}

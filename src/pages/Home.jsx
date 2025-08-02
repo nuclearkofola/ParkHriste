@@ -8,7 +8,7 @@ export function Home() {
         <li>Podrobné informace o vybavení a dostupnosti.</li>
         <li>Tipy na rodinné výlety a aktivity.</li>
       </ul>
-      <a href="/seznam" className="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Prozkoumat hřiště</a>
+      <a href="/seznam" className="btn btn-primary">Prozkoumat hřiště</a>
     </div>
   );
 }

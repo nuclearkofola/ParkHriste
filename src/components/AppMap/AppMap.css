@@ -1,18 +1,20 @@
 @import 'leaflet/dist/leaflet.css';
 .custom-icon {
+  background-color: white;
+  border-radius: 50%;
+  border: 2px solid black;
   display: flex;
-  justify-content: center;
   align-items: center;
-  font-size: 36px; /* Větší emoji pro ikony */
-  width: 60px;
-  height: 60px;
-  text-align: center;
-}
-
-.playground-icon {
-  color: #0000ff; /* Modrá pro hřiště */
+  justify-content: center;
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
 }
 
 .garden-icon {
-  color: #00ff00; /* Zelená pro parky */
+  background-color: rgba(255, 26, 26, 0.407);
+}
+
+.playground-icon {
+  background-color: rgba(205, 208, 0, 0.385);
 }

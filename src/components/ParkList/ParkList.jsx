@@ -27,34 +27,34 @@ const ParkList = () => {
     <div className="park-list-container">
       {error && <div className="alert alert-error m-4 max-w-2xl"><span>{error}</span></div>}
       
-      <h2 className="text-2xl font-bold m-4">Seznam zahrad</h2>
+      <h2 className="text-2xl font-bold m-4 text-primary">Seznam zahrad</h2>
       <ul className="park-list">
         {gardens?.features?.map((item, index) => (
           <li key={`garden-${index}`} className="park-item">
             <Link
               to={`/mapa?type=garden&id=${item.properties.id}`}
-              className="text-blue-600 hover:underline"
+              className="link link-primary"
             >
               {item.properties.name || 'Bez názvu'} (Zahrada)
             </Link>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-base-content">
               {item.properties.address?.address_formatted || 'Adresa není k dispozici'}
             </p>
           </li>
         )) || <p>Žádné zahrady nenalezeny.</p>}
       </ul>
 
-      <h2 className="text-2xl font-bold m-4">Seznam hřišť</h2>
+      <h2 className="text-2xl font-bold m-4 text-primary">Seznam hřišť</h2>
       <ul className="park-list">
         {playgrounds?.features?.map((item, index) => (
           <li key={`playground-${index}`} className="park-item">
             <Link
               to={`/mapa?type=playground&id=${item.properties.id}`}
-              className="text-blue-600 hover:underline"
+              className="link link-primary"
             >
               {item.properties.name || 'Bez názvu'} (Hřiště)
             </Link>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-base-content">
               {item.properties.address?.address_formatted || 'Adresa není k dispozici'}
             </p>
           </li>

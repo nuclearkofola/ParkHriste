@@ -62,4 +62,3 @@ module.exports = {
     ],
   },
 };
-npm run dev

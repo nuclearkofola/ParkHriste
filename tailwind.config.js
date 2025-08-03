@@ -5,9 +5,7 @@ module.exports = {
     "./src/**/*.{js,ts,jsx,tsx}",
     "./node_modules/daisyui/dist/**/*.js"
   ],
-  theme: {
-    extend: {},
-  },
+
   plugins: [require("daisyui")],
   daisyui: {
     themes: [

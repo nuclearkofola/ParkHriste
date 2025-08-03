@@ -5,7 +5,7 @@ import { Header } from './components/Header/Header';
 import AppMap from './components/AppMap/AppMap';
 import { Footer } from './components/Footer/Footer';
 
-import { Outlet } from 'react-router-dom'; // <- přidáno
+import { Outlet } from 'react-router-dom'; 
 
 function App() {
   const [count, setCount] = useState(0);

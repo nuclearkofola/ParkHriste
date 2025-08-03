@@ -10,9 +10,6 @@ import { Home } from './pages/Home.jsx';
 import { ListPage } from './pages/ListPage.jsx';
 import { MapPage } from './pages/MapPage.jsx';
 
-// Inicializace theme-change
-themeChange(false);
-
 ReactDOM.createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>

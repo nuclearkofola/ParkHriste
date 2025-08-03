@@ -1,22 +1,13 @@
 <!doctype html>
-<html lang="cs">
+<html lang="cs" data-theme="park">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/x-icon" href="./src/assets/favicon-32x32.png" />
     <title>Park Hřiště - vítejte na Super Užasné Reactí aplikaci </title>
-    <script>
-      // Načte téma z localStorage před renderováním stránky, aby se zabránilo blikání
-      (function() {
-        // Vymaže staré téma a nastaví park jako výchozí
-        localStorage.removeItem('theme');
-        const theme = 'park';
-        localStorage.setItem('theme', theme);
-        document.documentElement.setAttribute('data-theme', theme);
-      })();
-    </script>
+
   </head>
-  <body>
+  <body class="bg-base-200 text-base-content min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

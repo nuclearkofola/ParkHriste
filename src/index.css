@@ -1,0 +1,14 @@
+
+/* font Roboto */
+body {
+  font-family: 'Roboto', serif;
+}
+
+/* font Oswald */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Oswald', Arial, sans-serif;
+}
+
+.btn {
+  font-family: 'Bittter', Arial, sans-serif;
+}

@@ -56,8 +56,8 @@ const ParkList = () => {
       coords[0]
     );
     return (
-      <span className="text-xs text-info ml-2">
-        ({dist ? dist.toFixed(1) : '?'} km)
+      <span className="btn btn-neutral btn-xs ml-2 cursor-default select-none">
+        {dist ? dist.toFixed(1) : '?'} km
       </span>
     );
   };
@@ -67,37 +67,79 @@ const ParkList = () => {
       {error && <div className="alert alert-error m-4 max-w-2xl"><span>{error}</span></div>}
       
       <h2 className="text-2xl font-bold m-4 text-primary">Seznam zahrad</h2>
-      <ul className="park-list">
+      <ul className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {gardens?.features?.map((item, index) => (
-          <li key={`garden-${index}`} className="park-item">
-            <Link
-              to={`/mapa?type=garden&id=${item.properties.id}`}
-              className="link link-primary"
-            >
-              {item.properties.name || 'Bez názvu'} (Zahrada)
-            </Link>
-            {renderDistance(item)}
-            <p className="text-sm text-base-content">
-              {item.properties.address?.address_formatted || 'Adresa není k dispozici'}
-            </p>
+          <li key={`garden-${index}`}>
+            <div className="card bg-base-100 shadow-md border border-base-200">
+              {item.properties.image?.url ? (
+                <figure className="h-40 overflow-hidden">
+                  <img
+                    src={item.properties.image.url}
+                    alt={item.properties.name || 'Bez názvu'}
+                    className="object-cover w-full h-full"
+                  />
+                </figure>
+              ) : (
+                <figure className="h-40 flex items-center justify-center bg-base-200 text-base-content/50">
+                  <span>Bez obrázku</span>
+                </figure>
+              )}
+              <div className="card-body p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <Link
+                    to={`/mapa?type=garden&id=${item.properties.id}`}
+                    className="flex items-center gap-2 no-underline hover:underline"
+                  >
+                    <h3 className="card-title text-lg font-bold m-0">
+                      {item.properties.name || 'Bez názvu'}
+                    </h3>
+                    {renderDistance(item)}
+                  </Link>
+                </div>
+                <p className="text-sm text-base-content mb-1">
+                  {item.properties.address?.address_formatted || 'Adresa není k dispozici'}
+                </p>
+              </div>
+            </div>
           </li>
         )) || <p>Žádné zahrady nenalezeny.</p>}
       </ul>
 
       <h2 className="text-2xl font-bold m-4 text-primary">Seznam hřišť</h2>
-      <ul className="park-list">
+      <ul className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {playgrounds?.features?.map((item, index) => (
-          <li key={`playground-${index}`} className="park-item">
-            <Link
-              to={`/mapa?type=playground&id=${item.properties.id}`}
-              className="link link-primary"
-            >
-              {item.properties.name || 'Bez názvu'} (Hřiště)
-            </Link>
-            {renderDistance(item)}
-            <p className="text-sm text-base-content">
-              {item.properties.address?.address_formatted || 'Adresa není k dispozici'}
-            </p>
+          <li key={`playground-${index}`}>
+            <div className="card bg-base-100 shadow-md border border-base-200">
+              {item.properties.image?.url ? (
+                <figure className="h-40 overflow-hidden">
+                  <img
+                    src={item.properties.image.url}
+                    alt={item.properties.name || 'Bez názvu'}
+                    className="object-cover w-full h-full"
+                  />
+                </figure>
+              ) : (
+                <figure className="h-40 flex items-center justify-center bg-base-200 text-base-content/50">
+                  <span>Bez obrázku</span>
+                </figure>
+              )}
+              <div className="card-body p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <Link
+                    to={`/mapa?type=playground&id=${item.properties.id}`}
+                    className="flex items-center gap-2 no-underline hover:underline"
+                  >
+                    <h3 className="card-title text-lg font-bold m-0">
+                      {item.properties.name || 'Bez názvu'}
+                    </h3>
+                    {renderDistance(item)}
+                  </Link>
+                </div>
+                <p className="text-sm text-base-content mb-1">
+                  {item.properties.address?.address_formatted || 'Adresa není k dispozici'}
+                </p>
+              </div>
+            </div>
           </li>
         )) || <p>Žádné hřiště nenalezeno.</p>}
       </ul>

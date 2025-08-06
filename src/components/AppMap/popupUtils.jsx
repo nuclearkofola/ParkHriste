@@ -10,12 +10,12 @@ export const createPopupContent = (feature) => {
     ? props.properties.map(p => `<p><b>${p.description}:</b> ${p.value}</p>`).join('') 
     : '';
 
-  return `<div class="p-4 bg-white rounded shadow max-w-md">
-      <h2 class="text-xl font-bold">${name}</h2>
-      ${desc ? `<p class="mt-2">${desc}</p>` : ''}
-      <p class="text-sm text-base-content mt-2">${address}</p>
-      ${url ? `<p class="mt-2">${url}</p>` : ''}
-      ${propertiesList}
+  return `<div class="popup-content p-3 bg-white rounded">
+      <h2 class="text-lg font-bold">${name}</h2>
+      ${desc ? `<p class="mt-2 text-sm">${desc}</p>` : ''}
+      <p class="text-xs text-base-content mt-1">${address}</p>
+      ${url ? `<p class="mt-1 text-sm">${url}</p>` : ''}
+      ${propertiesList ? `<div class="properties text-xs mt-1">${propertiesList}</div>` : ''}
       ${image}
     </div>`;
 };

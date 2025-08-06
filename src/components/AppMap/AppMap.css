@@ -18,3 +18,22 @@
 .playground-icon {
   background-color: rgba(205, 208, 0, 0.385);
 }
+
+/* Upravené styly pro popup */
+.leaflet-popup-content {
+  margin: 5px;
+  max-width: 250px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.leaflet-popup-content-wrapper {
+  padding: 0;
+  font-size: 0.9rem;
+  border-radius: 6px;
+}
+
+.popup-content img {
+  max-height: 120px;
+  object-fit: cover;
+}

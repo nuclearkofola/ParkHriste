@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './index.css';
-import { themeChange } from 'theme-change';
+
 
 import { About } from './pages/About.jsx';
 import { Home } from './pages/Home.jsx';

@@ -1,23 +1,17 @@
-import { useState } from 'react';
+import { Header } from './components/Header/Header';
+import { Footer } from './components/Footer/Footer';
+import { Outlet } from 'react-router-dom'; 
 import './App.css';
 
-import { Header } from './components/Header/Header';
-import AppMap from './components/AppMap/AppMap';
-import { Footer } from './components/Footer/Footer';
-
-import { Outlet } from 'react-router-dom'; 
-
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <Header />
-
-      <Outlet />
-
+      <main className="flex-1 overflow-y-auto pt-2">
+        <Outlet />
+      </main>
       <Footer />
-    </>
+    </div>
   );
 }
 

@@ -11,15 +11,16 @@
   height: 40px;
 }
 
+/* styl pro park */
 .garden-icon {
   background-color: rgba(255, 26, 26, 0.407);
 }
-
+/* styl pro hriste */
 .playground-icon {
   background-color: rgba(205, 208, 0, 0.385);
 }
 
-/* Upravené styly pro popup */
+/* styl pro popup */
 .leaflet-popup-content {
   margin: 5px;
   max-width: 250px;

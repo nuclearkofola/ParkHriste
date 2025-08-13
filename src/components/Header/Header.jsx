@@ -9,7 +9,7 @@ export function Header() {
   const isActive = (path) => location.pathname === path ? "text-white  font-xlarge   bg-neutral" : "";
 
   // bez stínu jen na hlavní stránce
-  const headerClass = `sticky top-0 z-50 bg-base-100${location.pathname === "/" ? "" : " shadow-md"}`;
+  const headerClass = ` z-[9000] sticky top-0 z-50 bg-base-100${location.pathname === "/" ? "" : " shadow-md"}`;
 
   return (
     <header className={headerClass}>

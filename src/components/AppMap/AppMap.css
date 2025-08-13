@@ -38,3 +38,8 @@
   max-height: 120px;
   object-fit: cover;
 }
+
+/* Plynulá animace pro změnu velikosti */
+.transition-all {
+  transition: all 0.3s ease-in-out;
+}

@@ -43,3 +43,50 @@
 .transition-all {
   transition: all 0.3s ease-in-out;
 }
+
+/* Panel (desktop) – lepší typografie a obrázky */
+.panel-content img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+}
+
+/* Větší hero obrázek na desktopu – co největší při zachování poměru stran */
+@media (min-width: 768px) {
+  .panel-content img:first-of-type {
+    width: 100%;
+    height: clamp(300px, 65vh, 900px); /* větší výška = větší obrázek */
+    object-fit: contain;               /* zachovat poměr stran */
+    background: var(--fallback-b1, #f3f4f6);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    display: block;
+  }
+  .panel-content h1,
+  .panel-content h2 {
+    margin-top: 1rem;
+  }
+}
+
+/* Ještě větší hero obrázek na mobilu */
+@media (max-width: 767px) {
+  .panel-content img:first-of-type {
+    height: clamp(260px, 80vh, 1000px);
+    object-fit: contain;
+    background: var(--fallback-b1, #f3f4f6);
+  }
+}
+
+/* (Volitelné) jemnější typografie v detailu */
+.panel-content h1,
+.panel-content h2,
+.panel-content h3 {
+  margin-top: 0.75rem;
+}
+
+/* Plynulá změna šířky při otevření/ zavření panelu */
+.drawer-content,
+.drawer-side {
+  transition: width 0.25s ease, transform 0.25s ease;
+}

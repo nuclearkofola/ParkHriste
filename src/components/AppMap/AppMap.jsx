@@ -96,35 +96,32 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
   };
 
   const handleFeatureClick = (feature, layer) => {
-    // Vytvoří popup s upravenými nastaveními
     layer.bindPopup(createPopupContent(feature), popupOptions);
-    
-    // Přidá obsluhu události mouseover pro zobrazení popupu při najetí myší
-    layer.on('mouseover', () => {
-      layer.openPopup();
-    });
-    
+
+    // Odstraněno: zobrazení popupu při najetí myší
+    // layer.on('mouseover', () => {
+    //   layer.openPopup();
+    // });
+
     layer.on('click', () => {
       // Resetuje styl předchozí vybrané vrstvy
       if (selectedLayer && selectedLayer !== layer) {
         selectedLayer.setStyle?.(selectedLayer.options.defaultStyle || playgroundStyle);
         selectedLayer.setIcon?.(selectedLayer.feature?.properties.type === 'garden' ? gardenIcon : selectedIcon);
       }
-      
+
       // Nastavuje vzhled aktuální vybrané vrstvy
       if (feature.geometry.type === 'Point') {
-        // Přiblížení na vhodný zoom level pro detailní pohled
-        map.setView([
+        // Přiblížení a vycentrování mapy na marker
+        layer._map.setView([
           feature.geometry.coordinates[1],
           feature.geometry.coordinates[0]
-        ], 17); // Větší zoom pro lepší detail
-        
+        ], 17); // Zoom na detail
         layer.setIcon(feature.properties.type === 'garden' ? gardenIcon : selectedIcon);
       } else {
         layer.setStyle(selectedStyle);
       }
-      
-      // Aktualizuje vybranou vrstvu a otevře popup
+
       setSelectedLayer(layer);
       layer.openPopup();
     });

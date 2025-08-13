@@ -23,8 +23,8 @@
 /* styl pro popup */
 .leaflet-popup-content {
   margin: 5px;
-  max-width: 250px;
-  max-height: 250px;
+  max-width: 300px;   /* Increased from 250px */
+  max-height: 350px;  /* Increased from 250px */
   overflow-y: auto;
 }
 
@@ -35,8 +35,10 @@
 }
 
 .popup-content img {
-  max-height: 120px;
-  object-fit: cover;
+  max-height: 180px;  /* Increased height */
+  object-fit: cover; /* Changed from contain to cover */
+  display: block;      /* Make it block to respect margins */
+  margin: 0 auto;      /* Center the image */
 }
 
 /* Plynulá animace pro změnu velikosti */
@@ -52,12 +54,17 @@
   border-radius: 12px;
 }
 
+/* Add padding to drawer side to avoid header collision */
+.drawer-side > div {
+  padding-top: 6rem; /* Add space for the header */
+}
+
 /* První obrázek jako hero – vyplní šířku, výška dle viewportu */
 @media (min-width: 768px) {
   .panel-content img:first-of-type {
     width: 100%;
     height: clamp(220px, 40vh, 600px);
-    object-fit: contain;
+    object-fit: cover; /* Changed from contain to cover */
     background: var(--fallback-b1, #f3f4f6);
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;

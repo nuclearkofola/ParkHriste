@@ -52,12 +52,12 @@
   border-radius: 12px;
 }
 
-/* Větší hero obrázek na desktopu – co největší při zachování poměru stran */
+/* První obrázek jako hero – vyplní šířku, výška dle viewportu */
 @media (min-width: 768px) {
   .panel-content img:first-of-type {
     width: 100%;
-    height: clamp(300px, 65vh, 900px); /* větší výška = větší obrázek */
-    object-fit: contain;               /* zachovat poměr stran */
+    height: clamp(220px, 40vh, 600px);
+    object-fit: contain;
     background: var(--fallback-b1, #f3f4f6);
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
@@ -69,12 +69,10 @@
   }
 }
 
-/* Ještě větší hero obrázek na mobilu */
+/* Upřesnění pro mobily: trochu vyšší hero */
 @media (max-width: 767px) {
   .panel-content img:first-of-type {
-    height: clamp(260px, 80vh, 1000px);
-    object-fit: contain;
-    background: var(--fallback-b1, #f3f4f6);
+    height: clamp(220px, 50vh, 620px);
   }
 }
 

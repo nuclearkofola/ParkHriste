@@ -5,9 +5,22 @@ export const createPopupContent = (feature) => {
   const desc = props.content || props.perex || '';
   const url = props.url ? `<a href="${props.url}" target="_blank" class="link link-primary">Web</a>` : '';
   const image = props.image?.url ? `<img src="${props.image.url}" alt="${name}" class="mt-4 w-[90%] mx-auto h-auto rounded block" />` : '';
+  
+  // Check if this is a playground feature
+  const isPlayground = props.type === 'playground' || props.category === 'playground';
 
   const propertiesList = props.properties?.length 
-    ? props.properties.map(p => `<p><b>${p.description}:</b> ${p.value}</p>`).join('') 
+    ? props.properties
+        .filter(p => p.description) // Only include properties that have a description
+        .map(p => {
+          // For playgrounds, only show description without value
+          if (isPlayground) {
+            return `<p><b>${p.description}</b></p>`;
+          }
+          // For other features, show both description and value if value exists
+          return `<p><b>${p.description}:</b> ${p.value || ''}</p>`;
+        })
+        .join('') 
     : '';
 
   return `<div class="popup-content p-4 bg-white rounded">

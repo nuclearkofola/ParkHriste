@@ -44,7 +44,7 @@ export function Header() {
           <nav className="hidden lg:flex items-center space-x-6">
             <Link to="/" className={`btn btn-outline btn-lg text-base-content ${isActive("/")}`}>Domů</Link>
             <Link to="/mapa" className={`btn btn-outline btn-lg text-base-content ${isActive("/mapa")}`}>Mapa</Link>
-            <Link to="/seznam" className={`btn btn-outline btn-lg text-base-content ${isActive("/seznam")}`}>Hřiště</Link>
+            <Link to="/seznam" className={`btn btn-outline btn-lg text-base-content ${isActive("/seznam")}`}>Seznam</Link>
             <Link to="/o-nas" className={`btn btn-outline btn-lg text-base-content ${isActive("/o-nas")}`}>O nás</Link>
             {/* theme controler */}
             <label className="swap swap-rotate hidden lg:flex ml-2">

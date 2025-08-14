@@ -9,7 +9,7 @@ import { createPopupContent } from './popupUtils';
 // Pomocná komponenta pro přístup k mapě v rámci React-Leaflet
 function MapController({ selectedItemType, selectedItemId, gardens, playgrounds, userLocation, setMapCenter, onOpenPanel, setSelectedLayer }) {
   const map = useMap();
-  
+
   useEffect(() => {
     if (!map) return;
     // Pokud je vybrán objekt, najdi a otevři panel
@@ -23,9 +23,9 @@ function MapController({ selectedItemType, selectedItemId, gardens, playgrounds,
         // Najdi odpovídající layer a zvýrazni ho
         map.eachLayer((layer) => {
           if (layer.feature &&
-              layer.feature.properties &&
-              layer.feature.properties.id === selectedItemId &&
-              layer.feature.properties.type === selectedItemType) {
+            layer.feature.properties &&
+            layer.feature.properties.id === selectedItemId &&
+            layer.feature.properties.type === selectedItemType) {
             setSelectedLayer(layer);
             if (feature.properties.type === 'garden') {
               layer.setIcon?.(gardenIcon);
@@ -93,7 +93,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
           fetchGolemioData("/v2/gardens", apiKey),
           fetchGolemioData("/v2/playgrounds", apiKey),
         ]);
-        
+
         setGardens(gardensData);
         setPlaygrounds(playgroundsData);
       } catch (e) {
@@ -105,6 +105,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
   }, [apiKey]);
 
   const playgroundStyle = { color: '#0000ff', weight: 2, opacity: 0.8 };
+  const gardenStyle = { color: '#228B22', weight: 2, opacity: 0.8, fillColor: '#90EE90', fillOpacity: 0.3 };
   const selectedStyle = { color: '#ff0000', weight: 4, opacity: 1, fillOpacity: 0.5 };
 
   // Mírné oddálení mapy
@@ -197,7 +198,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
           type="checkbox"
           className="drawer-toggle"
           checked={isPanelOpen}
-          onChange={() => {}}
+          onChange={() => { }}
         />
 
         <div className="drawer-content h-full">
@@ -211,8 +212,8 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
               {/* Reakce na otevření/zavření panelu: zachovat střed a přepočítat velikost */}
               <MapResizer isPanelOpen={isPanelOpen} />
 
-              <MapController 
-                selectedItemType={selectedItemType} 
+              <MapController
+                selectedItemType={selectedItemType}
                 selectedItemId={selectedItemId}
                 gardens={gardens}
                 playgrounds={playgrounds}
@@ -239,7 +240,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
                 <Polyline positions={[[userLocation.lat, userLocation.lon], selectedCoords]} color="#00bcd4" weight={3} dashArray="6 6" />
               )}
 
-              {gardens && <GeoJSON data={gardens} pointToLayer={(f, latlng) => L.marker(latlng, { icon: gardenIcon })} onEachFeature={(f, l) => { f.properties.type = 'garden'; handleFeatureClick(f, l); }} />}
+              {gardens && <GeoJSON data={gardens} style={gardenStyle} pointToLayer={(f, latlng) => L.marker(latlng, { icon: gardenIcon })} onEachFeature={(f, l) => { f.properties.type = 'garden'; l.options.defaultStyle = gardenStyle; handleFeatureClick(f, l); }} />}
               {playgrounds && <GeoJSON data={playgrounds} style={playgroundStyle} pointToLayer={(f, latlng) => L.marker(latlng, { icon: selectedIcon })} onEachFeature={(f, l) => { f.properties.type = 'playground'; l.options.defaultStyle = playgroundStyle; handleFeatureClick(f, l); }} />}
             </MapContainer>
           </div>

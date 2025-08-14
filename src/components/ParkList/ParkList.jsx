@@ -3,6 +3,15 @@ import { Link } from 'react-router-dom';
 import { fetchGolemioData } from '../AppMap/api';
 import './ParkList.css';
 
+// Helper function to clean district names
+const cleanDistrictName = (district) => {
+  if (!district) return '';
+  return district
+    .replace('Hlavní město Praha-', '')
+    .replace('Praha-', '')
+    .replace('Praha ', '');
+};
+
 // Funkce pro výpočet vzdálenosti mezi dvěma body na Zemi (Haversine formula)
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return null;
@@ -56,6 +65,20 @@ const ParkList = () => {
       if (!apiKey) return setError("API klíč není nastaven");
       const gardensData = await fetchGolemioData("/v2/gardens", apiKey);
       const playgroundsData = await fetchGolemioData("/v2/playgrounds", apiKey);
+
+      // Add type property to all features
+      if (gardensData && gardensData.features) {
+        gardensData.features.forEach(feature => {
+          feature.properties.type = 'garden';
+        });
+      }
+
+      if (playgroundsData && playgroundsData.features) {
+        playgroundsData.features.forEach(feature => {
+          feature.properties.type = 'playground';
+        });
+      }
+
       setGardens(gardensData);
       setPlaygrounds(playgroundsData);
     };
@@ -67,7 +90,7 @@ const ParkList = () => {
     const districts = new Set();
     data?.features?.forEach(item => {
       const district = item.properties.address?.district;
-      if (district) districts.add(district);
+      if (district) districts.add(cleanDistrictName(district));
     });
     return Array.from(districts).sort();
   };
@@ -104,7 +127,7 @@ const ParkList = () => {
     // Filtr podle městské části
     if (districtFilterGardens) {
       filteredItems = filteredItems.filter(item =>
-        item.properties.address?.district === districtFilterGardens
+        cleanDistrictName(item.properties.address?.district) === districtFilterGardens
       );
     }
 
@@ -149,10 +172,10 @@ const ParkList = () => {
       });
     }
 
-    // Filtr podle městské části
+    // Filtr podle městské části s čistými názvy
     if (districtFilterPlaygrounds) {
       filteredItems = filteredItems.filter(item =>
-        item.properties.address?.district === districtFilterPlaygrounds
+        cleanDistrictName(item.properties.address?.district) === districtFilterPlaygrounds
       );
     }
 
@@ -318,6 +341,11 @@ const ParkList = () => {
                   </div>
                   <p className="text-sm text-base-content truncate">
                     {item.properties.address?.address_formatted || 'Adresa není k dispozici'}
+                    {item.properties.address?.district && (
+                      <span className="ml-1 text-primary">
+                        ({cleanDistrictName(item.properties.address.district)})
+                      </span>
+                    )}
                   </p>
                   <p className="text-xs text-base-content/70 line-clamp-2">
                     {item.properties.content || item.properties.perex || 'Žádný popis není k dispozici'}
@@ -439,6 +467,11 @@ const ParkList = () => {
                   </div>
                   <p className="text-sm text-base-content truncate">
                     {item.properties.address?.address_formatted || 'Adresa není k dispozici'}
+                    {item.properties.address?.district && (
+                      <span className="ml-1 text-primary">
+                        ({cleanDistrictName(item.properties.address.district)})
+                      </span>
+                    )}
                   </p>
                   <p className="text-xs text-base-content/70 line-clamp-2">
                     {item.properties.content || item.properties.perex || 'Žádný popis není k dispozici'}

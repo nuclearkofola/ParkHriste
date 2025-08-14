@@ -10,53 +10,38 @@ import { createPopupContent } from './popupUtils';
 function MapController({ selectedItemType, selectedItemId, gardens, playgrounds, userLocation, setMapCenter, onOpenPanel, setSelectedLayer }) {
   const map = useMap();
   
-  // Helper function to find and focus on the selected feature
-  const findAndFocusFeature = () => {
-    if (!map || !selectedItemType || !selectedItemId) return;
-    
-    const data = selectedItemType === 'garden' ? gardens : playgrounds;
-    if (!data || !data.features) return;
-    
-    const feature = data.features.find(f => f.properties.id === selectedItemId);
-    if (feature && feature.geometry.type === 'Point') {
-      const [lng, lat] = feature.geometry.coordinates;
-      map.setView([lat, lng], 17);
-      
-      // Find the corresponding layer
-      map.eachLayer((layer) => {
-        if (layer.feature &&
-            layer.feature.properties &&
-            layer.feature.properties.id === selectedItemId &&
-            layer.feature.properties.type === selectedItemType) {
-          setSelectedLayer(layer);
-          // Use the correct icon based on feature type
-          const icon = selectedItemType === 'garden' ? gardenIcon : selectedIcon;
-          layer.setIcon?.(icon);
-          // Open the panel with this feature
-          onOpenPanel?.(feature);
-        }
-      });
-    }
-  };
-
-  // Run when selected item changes
   useEffect(() => {
     if (!map) return;
-    
+    // Pokud je vybrán objekt, najdi a otevři panel
     if (selectedItemType && selectedItemId) {
-      findAndFocusFeature();
+      const data = selectedItemType === 'garden' ? gardens : playgrounds;
+      if (!data || !data.features) return;
+      const feature = data.features.find(f => f.properties.id === selectedItemId);
+      if (feature && feature.geometry.type === 'Point') {
+        const [lng, lat] = feature.geometry.coordinates;
+        map.setView([lat, lng], 17);
+        // Najdi odpovídající layer a zvýrazni ho
+        map.eachLayer((layer) => {
+          if (layer.feature &&
+              layer.feature.properties &&
+              layer.feature.properties.id === selectedItemId &&
+              layer.feature.properties.type === selectedItemType) {
+            setSelectedLayer(layer);
+            if (feature.properties.type === 'garden') {
+              layer.setIcon?.(gardenIcon);
+            } else {
+              layer.setIcon?.(selectedIcon);
+            }
+          }
+        });
+        onOpenPanel?.(feature);
+      }
     } else if (userLocation) {
-      // If no item is selected, center on user location
+      // Pokud není vybrán objekt, přibliž na uživatele
       map.setView([userLocation.lat, userLocation.lon], 16);
       setMapCenter && setMapCenter([userLocation.lat, userLocation.lon]);
     }
-  }, [map, selectedItemType, selectedItemId, userLocation, setMapCenter]);
-  
-  // Run when data changes to ensure we find the selected item after data loads
-  useEffect(() => {
-    if (!map || !selectedItemType || !selectedItemId) return;
-    findAndFocusFeature();
-  }, [map, gardens, playgrounds]);
+  }, [map, selectedItemType, selectedItemId, gardens, playgrounds, userLocation, setMapCenter, onOpenPanel, setSelectedLayer]);
 
   return null;
 }
@@ -80,6 +65,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
   const [gardens, setGardens] = useState(null);
   const [playgrounds, setPlaygrounds] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [selectedLayer, setSelectedLayer] = useState(null);
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -101,31 +87,25 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
 
   useEffect(() => {
     const loadData = async () => {
-      if (!apiKey) return setError("API klíč není nastaven");
+      if (!apiKey) {
+        setError("API klíč není nastaven");
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
 
       try {
         const [gardensData, playgroundsData] = await Promise.all([
           fetchGolemioData("/v2/gardens", apiKey),
           fetchGolemioData("/v2/playgrounds", apiKey),
         ]);
-
-        // Ensure type property is set consistently for all features
-        if (gardensData && gardensData.features) {
-          gardensData.features.forEach(feature => {
-            feature.properties.type = 'garden';
-          });
-        }
-
-        if (playgroundsData && playgroundsData.features) {
-          playgroundsData.features.forEach(feature => {
-            feature.properties.type = 'playground';
-          });
-        }
-
+        
         setGardens(gardensData);
         setPlaygrounds(playgroundsData);
+        setLoading(false);
       } catch (e) {
         setError("Chyba při načítání dat");
+        setLoading(false);
       }
     };
 
@@ -133,7 +113,6 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
   }, [apiKey]);
 
   const playgroundStyle = { color: '#0000ff', weight: 2, opacity: 0.8 };
-  const gardenStyle = { color: '#228B22', weight: 2, opacity: 0.8, fillColor: '#90EE90', fillOpacity: 0.3 };
   const selectedStyle = { color: '#ff0000', weight: 4, opacity: 1, fillOpacity: 0.5 };
 
   // Mírné oddálení mapy
@@ -145,17 +124,16 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
 
   // Otevřít panel s detailem
   const openPanel = (feature, layer) => {
-    if (!feature) return;
-    
     setSelectedFeature(feature);
     setIsPanelOpen(true);
-    
     if (layer && feature?.geometry?.type === 'Point') {
       const [lng, lat] = feature.geometry.coordinates;
       layer._map.setView([lat, lng], 17);
-      // Use the correct icon based on feature type
-      const icon = feature.properties.type === 'garden' ? gardenIcon : selectedIcon;
-      layer.setIcon?.(icon);
+      if (feature.properties.type === 'garden') {
+        layer.setIcon?.(gardenIcon);
+      } else {
+        layer.setIcon?.(selectedIcon);
+      }
     }
   };
 
@@ -166,24 +144,18 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
     // reset stylu předchozí vybrané vrstvy
     if (selectedLayer) {
       selectedLayer.setStyle?.(selectedLayer.options?.defaultStyle || playgroundStyle);
-      // Reset to the correct default icon based on feature type
-      if (selectedLayer.feature?.properties?.type === 'garden') {
-        selectedLayer.setIcon?.(gardenIcon);
-      } else {
-        selectedLayer.setIcon?.(selectedIcon);
-      }
+      selectedLayer.setIcon?.(selectedLayer.feature?.properties.type === 'garden' ? gardenIcon : selectedIcon);
     }
     zoomOutSlightly(map || mapRef.current);
   };
 
   const handleFeatureClick = (feature, layer) => {
+    // Už nepoužíváme Leaflet popup
     layer.on('click', () => {
       const map = layer._map;
 
       // Klik na stejný prvek = zavřít panel a oddálit
-      if (isPanelOpen && 
-          (selectedFeature?.properties?.id === feature.properties?.id) && 
-          (selectedFeature?.properties?.type === feature.properties?.type)) {
+      if (isPanelOpen && selectedFeature?.properties?.id === feature.properties?.id) {
         closePanel(map);
         setSelectedLayer(null);
         return;
@@ -192,12 +164,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
       // Resetuje styl předchozí vybrané vrstvy
       if (selectedLayer && selectedLayer !== layer) {
         selectedLayer.setStyle?.(selectedLayer.options.defaultStyle || playgroundStyle);
-        // Use the correct icon based on feature type
-        if (selectedLayer.feature?.properties?.type === 'garden') {
-          selectedLayer.setIcon?.(gardenIcon);
-        } else {
-          selectedLayer.setIcon?.(selectedIcon);
-        }
+        selectedLayer.setIcon?.(selectedLayer.feature?.properties.type === 'garden' ? gardenIcon : selectedIcon);
       }
 
       // Přiblížení a vycentrování mapy na marker/vrstvu
@@ -206,9 +173,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
           feature.geometry.coordinates[1],
           feature.geometry.coordinates[0]
         ], 17);
-        // Use the correct icon based on feature type
-        const icon = feature.properties.type === 'garden' ? gardenIcon : selectedIcon;
-        layer.setIcon(icon);
+        layer.setIcon(feature.properties.type === 'garden' ? gardenIcon : selectedIcon);
       } else {
         layer.setStyle(selectedStyle);
       }
@@ -230,6 +195,14 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
 
   return (
     <div className={`relative ${className}`}>
+      {loading && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-base-100/80">
+          <div className="flex items-center space-x-3">
+            <span className="loading loading-spinner loading-xl mr-3" />
+            <span>Data se načíteji</span>
+          </div>
+        </div>
+      )}
       {error && <div className="alert alert-error m-4 max-w-2xl"><span>{error}</span></div>}
 
       {/* Drawer pro mobil (overlay) + panel 1/2 šířky na desktopu */}
@@ -240,7 +213,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
           type="checkbox"
           className="drawer-toggle"
           checked={isPanelOpen}
-          onChange={() => { }}
+          onChange={() => {}}
         />
 
         <div className="drawer-content h-full">
@@ -254,14 +227,14 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
               {/* Reakce na otevření/zavření panelu: zachovat střed a přepočítat velikost */}
               <MapResizer isPanelOpen={isPanelOpen} />
 
-              <MapController
-                selectedItemType={selectedItemType}
+              <MapController 
+                selectedItemType={selectedItemType} 
                 selectedItemId={selectedItemId}
                 gardens={gardens}
                 playgrounds={playgrounds}
                 userLocation={userLocation}
                 setMapCenter={setMapCenter}
-                onOpenPanel={openPanel}
+                onOpenPanel={(f) => { setSelectedFeature(f); setIsPanelOpen(true); }}
                 setSelectedLayer={setSelectedLayer}
               />
 
@@ -282,29 +255,8 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
                 <Polyline positions={[[userLocation.lat, userLocation.lon], selectedCoords]} color="#00bcd4" weight={3} dashArray="6 6" />
               )}
 
-              {gardens && <GeoJSON 
-                data={gardens} 
-                style={gardenStyle} 
-                pointToLayer={(f, latlng) => L.marker(latlng, { icon: gardenIcon })} 
-                onEachFeature={(f, l) => { 
-                  f.properties.type = 'garden'; 
-                  l.options.defaultStyle = gardenStyle;
-                  l.options.defaultIcon = gardenIcon;
-                  handleFeatureClick(f, l); 
-                }} 
-              />}
-              
-              {playgrounds && <GeoJSON 
-                data={playgrounds} 
-                style={playgroundStyle} 
-                pointToLayer={(f, latlng) => L.marker(latlng, { icon: selectedIcon })} 
-                onEachFeature={(f, l) => { 
-                  f.properties.type = 'playground'; 
-                  l.options.defaultStyle = playgroundStyle;
-                  l.options.defaultIcon = selectedIcon;
-                  handleFeatureClick(f, l); 
-                }} 
-              />}
+              {gardens && <GeoJSON data={gardens} pointToLayer={(f, latlng) => L.marker(latlng, { icon: gardenIcon })} onEachFeature={(f, l) => { f.properties.type = 'garden'; handleFeatureClick(f, l); }} />}
+              {playgrounds && <GeoJSON data={playgrounds} style={playgroundStyle} pointToLayer={(f, latlng) => L.marker(latlng, { icon: selectedIcon })} onEachFeature={(f, l) => { f.properties.type = 'playground'; l.options.defaultStyle = playgroundStyle; handleFeatureClick(f, l); }} />}
             </MapContainer>
           </div>
         </div>

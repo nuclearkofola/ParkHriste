@@ -7,7 +7,7 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 overflow-y-auto pt-2">
+      <main className="flex-1 flex flex-col overflow-hidden">
         <Outlet />
       </main>
       <Footer />

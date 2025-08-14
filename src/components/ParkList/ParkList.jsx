@@ -34,6 +34,7 @@ const ParkList = () => {
   const [gardens, setGardens] = useState(null);
   const [playgrounds, setPlaygrounds] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState(null);
 
   // Stavy pro filtrování parků
@@ -62,7 +63,12 @@ const ParkList = () => {
     }
     // Asynchronní načtení dat ze dvou endpointů
     const loadData = async () => {
-      if (!apiKey) return setError("API klíč není nastaven");
+      if (!apiKey) {
+        setError("API klíč není nastaven");
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
       const gardensData = await fetchGolemioData("/v2/gardens", apiKey);
       const playgroundsData = await fetchGolemioData("/v2/playgrounds", apiKey);
 
@@ -81,9 +87,21 @@ const ParkList = () => {
 
       setGardens(gardensData);
       setPlaygrounds(playgroundsData);
+      setLoading(false);
     };
     loadData();
   }, [apiKey]);
+
+  if (loading) {
+    return (
+      <div className="park-list-container">
+        <div className="flex items-center m-4">
+          <span className="loading loading-spinner mr-3" />
+          <span>Data se načíteji</span>
+        </div>
+      </div>
+    );
+  }
 
   // Funkce pro získání unikátních městských částí
   const getUniqueDistricts = (data) => {

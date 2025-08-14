@@ -27,11 +27,9 @@ function MapController({ selectedItemType, selectedItemId, gardens, playgrounds,
             layer.feature.properties.id === selectedItemId &&
             layer.feature.properties.type === selectedItemType) {
             setSelectedLayer(layer);
-            if (feature.properties.type === 'garden') {
-              layer.setIcon?.(gardenIcon);
-            } else {
-              layer.setIcon?.(selectedIcon);
-            }
+            // Use the correct icon based on feature type
+            const icon = selectedItemType === 'garden' ? gardenIcon : selectedIcon;
+            layer.setIcon?.(icon);
           }
         });
         onOpenPanel?.(feature);
@@ -94,6 +92,19 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
           fetchGolemioData("/v2/playgrounds", apiKey),
         ]);
 
+        // Ensure type property is set consistently for all features
+        if (gardensData && gardensData.features) {
+          gardensData.features.forEach(feature => {
+            feature.properties.type = 'garden';
+          });
+        }
+
+        if (playgroundsData && playgroundsData.features) {
+          playgroundsData.features.forEach(feature => {
+            feature.properties.type = 'playground';
+          });
+        }
+
         setGardens(gardensData);
         setPlaygrounds(playgroundsData);
       } catch (e) {
@@ -122,11 +133,9 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
     if (layer && feature?.geometry?.type === 'Point') {
       const [lng, lat] = feature.geometry.coordinates;
       layer._map.setView([lat, lng], 17);
-      if (feature.properties.type === 'garden') {
-        layer.setIcon?.(gardenIcon);
-      } else {
-        layer.setIcon?.(selectedIcon);
-      }
+      // Use the correct icon based on feature type
+      const icon = feature.properties.type === 'garden' ? gardenIcon : selectedIcon;
+      layer.setIcon?.(icon);
     }
   };
 
@@ -137,18 +146,24 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
     // reset stylu předchozí vybrané vrstvy
     if (selectedLayer) {
       selectedLayer.setStyle?.(selectedLayer.options?.defaultStyle || playgroundStyle);
-      selectedLayer.setIcon?.(selectedLayer.feature?.properties.type === 'garden' ? gardenIcon : selectedIcon);
+      // Reset to the correct default icon based on feature type
+      if (selectedLayer.feature?.properties?.type === 'garden') {
+        selectedLayer.setIcon?.(gardenIcon);
+      } else {
+        selectedLayer.setIcon?.(selectedIcon);
+      }
     }
     zoomOutSlightly(map || mapRef.current);
   };
 
   const handleFeatureClick = (feature, layer) => {
-    // Už nepoužíváme Leaflet popup
     layer.on('click', () => {
       const map = layer._map;
 
       // Klik na stejný prvek = zavřít panel a oddálit
-      if (isPanelOpen && selectedFeature?.properties?.id === feature.properties?.id) {
+      if (isPanelOpen && 
+          (selectedFeature?.properties?.id === feature.properties?.id) && 
+          (selectedFeature?.properties?.type === feature.properties?.type)) {
         closePanel(map);
         setSelectedLayer(null);
         return;
@@ -157,7 +172,12 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
       // Resetuje styl předchozí vybrané vrstvy
       if (selectedLayer && selectedLayer !== layer) {
         selectedLayer.setStyle?.(selectedLayer.options.defaultStyle || playgroundStyle);
-        selectedLayer.setIcon?.(selectedLayer.feature?.properties.type === 'garden' ? gardenIcon : selectedIcon);
+        // Use the correct icon based on feature type
+        if (selectedLayer.feature?.properties?.type === 'garden') {
+          selectedLayer.setIcon?.(gardenIcon);
+        } else {
+          selectedLayer.setIcon?.(selectedIcon);
+        }
       }
 
       // Přiblížení a vycentrování mapy na marker/vrstvu
@@ -166,7 +186,9 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
           feature.geometry.coordinates[1],
           feature.geometry.coordinates[0]
         ], 17);
-        layer.setIcon(feature.properties.type === 'garden' ? gardenIcon : selectedIcon);
+        // Use the correct icon based on feature type
+        const icon = feature.properties.type === 'garden' ? gardenIcon : selectedIcon;
+        layer.setIcon(icon);
       } else {
         layer.setStyle(selectedStyle);
       }
@@ -240,8 +262,29 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
                 <Polyline positions={[[userLocation.lat, userLocation.lon], selectedCoords]} color="#00bcd4" weight={3} dashArray="6 6" />
               )}
 
-              {gardens && <GeoJSON data={gardens} style={gardenStyle} pointToLayer={(f, latlng) => L.marker(latlng, { icon: gardenIcon })} onEachFeature={(f, l) => { f.properties.type = 'garden'; l.options.defaultStyle = gardenStyle; handleFeatureClick(f, l); }} />}
-              {playgrounds && <GeoJSON data={playgrounds} style={playgroundStyle} pointToLayer={(f, latlng) => L.marker(latlng, { icon: selectedIcon })} onEachFeature={(f, l) => { f.properties.type = 'playground'; l.options.defaultStyle = playgroundStyle; handleFeatureClick(f, l); }} />}
+              {gardens && <GeoJSON 
+                data={gardens} 
+                style={gardenStyle} 
+                pointToLayer={(f, latlng) => L.marker(latlng, { icon: gardenIcon })} 
+                onEachFeature={(f, l) => { 
+                  f.properties.type = 'garden'; 
+                  l.options.defaultStyle = gardenStyle;
+                  l.options.defaultIcon = gardenIcon;
+                  handleFeatureClick(f, l); 
+                }} 
+              />}
+              
+              {playgrounds && <GeoJSON 
+                data={playgrounds} 
+                style={playgroundStyle} 
+                pointToLayer={(f, latlng) => L.marker(latlng, { icon: selectedIcon })} 
+                onEachFeature={(f, l) => { 
+                  f.properties.type = 'playground'; 
+                  l.options.defaultStyle = playgroundStyle;
+                  l.options.defaultIcon = selectedIcon;
+                  handleFeatureClick(f, l); 
+                }} 
+              />}
             </MapContainer>
           </div>
         </div>

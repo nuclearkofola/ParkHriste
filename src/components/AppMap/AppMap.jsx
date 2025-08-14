@@ -9,37 +9,54 @@ import { createPopupContent } from './popupUtils';
 // Pomocná komponenta pro přístup k mapě v rámci React-Leaflet
 function MapController({ selectedItemType, selectedItemId, gardens, playgrounds, userLocation, setMapCenter, onOpenPanel, setSelectedLayer }) {
   const map = useMap();
-
-  useEffect(() => {
-    if (!map) return;
-    // Pokud je vybrán objekt, najdi a otevři panel
-    if (selectedItemType && selectedItemId) {
-      const data = selectedItemType === 'garden' ? gardens : playgrounds;
-      if (!data || !data.features) return;
-      const feature = data.features.find(f => f.properties.id === selectedItemId);
-      if (feature && feature.geometry.type === 'Point') {
-        const [lng, lat] = feature.geometry.coordinates;
-        map.setView([lat, lng], 17);
-        // Najdi odpovídající layer a zvýrazni ho
-        map.eachLayer((layer) => {
-          if (layer.feature &&
+  
+  // Helper function to find and focus on the selected feature
+  const findAndFocusFeature = () => {
+    if (!map || !selectedItemType || !selectedItemId) return;
+    
+    const data = selectedItemType === 'garden' ? gardens : playgrounds;
+    if (!data || !data.features) return;
+    
+    const feature = data.features.find(f => f.properties.id === selectedItemId);
+    if (feature && feature.geometry.type === 'Point') {
+      const [lng, lat] = feature.geometry.coordinates;
+      map.setView([lat, lng], 17);
+      
+      // Find the corresponding layer
+      map.eachLayer((layer) => {
+        if (layer.feature &&
             layer.feature.properties &&
             layer.feature.properties.id === selectedItemId &&
             layer.feature.properties.type === selectedItemType) {
-            setSelectedLayer(layer);
-            // Use the correct icon based on feature type
-            const icon = selectedItemType === 'garden' ? gardenIcon : selectedIcon;
-            layer.setIcon?.(icon);
-          }
-        });
-        onOpenPanel?.(feature);
-      }
+          setSelectedLayer(layer);
+          // Use the correct icon based on feature type
+          const icon = selectedItemType === 'garden' ? gardenIcon : selectedIcon;
+          layer.setIcon?.(icon);
+          // Open the panel with this feature
+          onOpenPanel?.(feature);
+        }
+      });
+    }
+  };
+
+  // Run when selected item changes
+  useEffect(() => {
+    if (!map) return;
+    
+    if (selectedItemType && selectedItemId) {
+      findAndFocusFeature();
     } else if (userLocation) {
-      // Pokud není vybrán objekt, přibliž na uživatele
+      // If no item is selected, center on user location
       map.setView([userLocation.lat, userLocation.lon], 16);
       setMapCenter && setMapCenter([userLocation.lat, userLocation.lon]);
     }
-  }, [map, selectedItemType, selectedItemId, gardens, playgrounds, userLocation, setMapCenter, onOpenPanel, setSelectedLayer]);
+  }, [map, selectedItemType, selectedItemId, userLocation, setMapCenter]);
+  
+  // Run when data changes to ensure we find the selected item after data loads
+  useEffect(() => {
+    if (!map || !selectedItemType || !selectedItemId) return;
+    findAndFocusFeature();
+  }, [map, gardens, playgrounds]);
 
   return null;
 }
@@ -128,8 +145,11 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
 
   // Otevřít panel s detailem
   const openPanel = (feature, layer) => {
+    if (!feature) return;
+    
     setSelectedFeature(feature);
     setIsPanelOpen(true);
+    
     if (layer && feature?.geometry?.type === 'Point') {
       const [lng, lat] = feature.geometry.coordinates;
       layer._map.setView([lat, lng], 17);
@@ -241,7 +261,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
                 playgrounds={playgrounds}
                 userLocation={userLocation}
                 setMapCenter={setMapCenter}
-                onOpenPanel={(f) => { setSelectedFeature(f); setIsPanelOpen(true); }}
+                onOpenPanel={openPanel}
                 setSelectedLayer={setSelectedLayer}
               />
 

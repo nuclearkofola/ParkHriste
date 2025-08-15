@@ -12,6 +12,10 @@ function MapController({ selectedItemType, selectedItemId, gardens, playgrounds,
   
   useEffect(() => {
     if (!map) return;
+    
+    // Clear previous selection first
+    setSelectedLayer(null);
+    
     // Pokud je vybrán objekt, najdi a otevři panel
     if (selectedItemType && selectedItemId) {
       const data = selectedItemType === 'garden' ? gardens : playgrounds;
@@ -20,21 +24,26 @@ function MapController({ selectedItemType, selectedItemId, gardens, playgrounds,
       if (feature && feature.geometry.type === 'Point') {
         const [lng, lat] = feature.geometry.coordinates;
         map.setView([lat, lng], 17);
-        // Najdi odpovídající layer a zvýrazni ho
-        map.eachLayer((layer) => {
-          if (layer.feature &&
-              layer.feature.properties &&
-              layer.feature.properties.id === selectedItemId &&
-              layer.feature.properties.type === selectedItemType) {
-            setSelectedLayer(layer);
-            if (feature.properties.type === 'garden') {
-              layer.setIcon?.(gardenIcon);
-            } else {
-              layer.setIcon?.(selectedIcon);
+        
+        // Use setTimeout to ensure layers are rendered before searching
+        setTimeout(() => {
+          // Najdi odpovídající layer a zvýrazni ho
+          map.eachLayer((layer) => {
+            if (layer.feature &&
+                layer.feature.properties &&
+                layer.feature.properties.id === selectedItemId &&
+                layer.feature.properties.type === selectedItemType) {
+              setSelectedLayer(layer);
+              if (feature.properties.type === 'garden') {
+                layer.setIcon?.(gardenIcon);
+              } else {
+                layer.setIcon?.(selectedIcon);
+              }
+              // Force the panel to open with this feature
+              onOpenPanel?.(feature);
             }
-          }
-        });
-        onOpenPanel?.(feature);
+          });
+        }, 100);
       }
     } else if (userLocation) {
       // Pokud není vybrán objekt, přibliž na uživatele
@@ -141,11 +150,19 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
   const closePanel = (map) => {
     setIsPanelOpen(false);
     setSelectedFeature(null);
-    // reset stylu předchozí vybrané vrstvy
+    
+    // Reset style of previously selected layer
     if (selectedLayer) {
       selectedLayer.setStyle?.(selectedLayer.options?.defaultStyle || playgroundStyle);
-      selectedLayer.setIcon?.(selectedLayer.feature?.properties.type === 'garden' ? gardenIcon : selectedIcon);
+      // Reset icon based on type
+      if (selectedLayer.feature?.properties.type === 'garden') {
+        selectedLayer.setIcon?.(gardenIcon);
+      } else {
+        selectedLayer.setIcon?.(selectedIcon);
+      }
     }
+    setSelectedLayer(null); // Clear selected layer
+    
     zoomOutSlightly(map || mapRef.current);
   };
 

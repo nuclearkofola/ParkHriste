@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap, Marker, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import './AppMap.css';
@@ -9,15 +9,15 @@ import { createPopupContent } from './popupUtils';
 // Pomocná komponenta pro přístup k mapě v rámci React-Leaflet
 function MapController({ selectedItemType, selectedItemId, gardens, playgrounds, userLocation, setMapCenter, onOpenPanel, setSelectedLayer }) {
   const map = useMap();
-  
+  const centeredOnceRef = useRef(false);
+
   useEffect(() => {
     if (!map) return;
-    
-    // Clear previous selection first
+
     setSelectedLayer(null);
-    
-    // Pokud je vybrán objekt, najdi a otevři panel
+
     if (selectedItemType && selectedItemId) {
+      // Pokud je vybrán objekt, najdi a otevři panel
       const data = selectedItemType === 'garden' ? gardens : playgrounds;
       if (!data || !data.features) return;
       const feature = data.features.find(f => f.properties.id === selectedItemId);
@@ -45,10 +45,11 @@ function MapController({ selectedItemType, selectedItemId, gardens, playgrounds,
           });
         }, 100);
       }
-    } else if (userLocation) {
+    } else if (userLocation && !centeredOnceRef.current) {
       // Pokud není vybrán objekt, přibliž na uživatele
       map.setView([userLocation.lat, userLocation.lon], 16);
       setMapCenter && setMapCenter([userLocation.lat, userLocation.lon]);
+      centeredOnceRef.current = true; // už necentrovat znovu
     }
   }, [map, selectedItemType, selectedItemId, gardens, playgrounds, userLocation, setMapCenter, onOpenPanel, setSelectedLayer]);
 
@@ -210,6 +211,11 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
     }
   }
 
+  const handleOpenPanel = useCallback((f) => {
+    setSelectedFeature(f);
+    setIsPanelOpen(true);
+  }, []);
+
   return (
     <div className={`relative ${className}`}>
       {loading && (
@@ -251,7 +257,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
                 playgrounds={playgrounds}
                 userLocation={userLocation}
                 setMapCenter={setMapCenter}
-                onOpenPanel={(f) => { setSelectedFeature(f); setIsPanelOpen(true); }}
+                onOpenPanel={handleOpenPanel}
                 setSelectedLayer={setSelectedLayer}
               />
 

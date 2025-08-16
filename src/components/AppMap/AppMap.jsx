@@ -7,7 +7,7 @@ import { fetchGolemioData } from './api';
 import { createPopupContent } from './popupUtils';
 
 // Pomocná komponenta pro přístup k mapě v rámci React-Leaflet
-function MapController({ selectedItemType, selectedItemId, gardens, playgrounds, userLocation, setMapCenter, onOpenPanel, setSelectedLayer }) {
+function MapController({ selectedItemType, selectedItemId, gardens, playgrounds, userLocation, setMapCenter, onOpenPanel, setSelectedLayer, getLayerForSelection }) {
   const map = useMap();
   const centeredOnceRef = useRef(false);
 
@@ -28,23 +28,17 @@ function MapController({ selectedItemType, selectedItemId, gardens, playgrounds,
         // Use setTimeout to ensure layers are rendered before searching
         setTimeout(() => {
           // Najdi odpovídající layer a zvýrazni ho
-          map.eachLayer((layer) => {
-            if (
-              layer.feature &&
-              layer.feature.properties &&
-              String(layer.feature.properties.id) === String(selectedItemId) &&
-              layer.feature.properties.type === selectedItemType
-            ) {
-              setSelectedLayer(layer);
-              if (feature.properties.type === 'garden') {
-                layer.setIcon?.(gardenIcon);
-              } else {
-                layer.setIcon?.(selectedIcon);
-              }
-              // Force the panel to open with this feature
-              onOpenPanel?.(feature);
+          const layer = getLayerForSelection(selectedItemType, selectedItemId);
+          if (layer) {
+            setSelectedLayer(layer);
+            if (feature.properties.type === 'garden') {
+              layer.setIcon?.(gardenIcon);
+            } else {
+              layer.setIcon?.(selectedIcon);
             }
-          });
+            // Force the panel to open with this feature
+            onOpenPanel?.(feature);
+          }
         }, 100);
       }
     } else if (userLocation && !centeredOnceRef.current) {
@@ -53,7 +47,7 @@ function MapController({ selectedItemType, selectedItemId, gardens, playgrounds,
       setMapCenter && setMapCenter([userLocation.lat, userLocation.lon]);
       centeredOnceRef.current = true; // už necentrovat znovu
     }
-  }, [map, selectedItemType, selectedItemId, gardens, playgrounds, userLocation, setMapCenter, onOpenPanel, setSelectedLayer]);
+  }, [map, selectedItemType, selectedItemId, gardens, playgrounds, userLocation, setMapCenter, onOpenPanel, setSelectedLayer, getLayerForSelection]);
 
   return null;
 }
@@ -84,6 +78,19 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
   const [userLocation, setUserLocation] = useState(null);
   const [mapCenter, setMapCenter] = useState([50.0755, 14.4378]);
   const mapRef = useRef(null);
+
+  // mapy pro rychlé dohledání vrstvy dle id
+  const gardenLayersRef = useRef(new Map());
+  const playgroundLayersRef = useRef(new Map());
+
+  // vyčištění map při změně dat
+  useEffect(() => { gardenLayersRef.current.clear(); }, [gardens]);
+  useEffect(() => { playgroundLayersRef.current.clear(); }, [playgrounds]);
+
+  const getLayerForSelection = useCallback((type, id) => {
+    const store = type === 'garden' ? gardenLayersRef.current : playgroundLayersRef.current;
+    return store.get(String(id)) || null;
+  }, []);
 
   const apiKey = import.meta.env.VITE_GOLEMIO_KEY;
 
@@ -261,6 +268,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
                 setMapCenter={setMapCenter}
                 onOpenPanel={handleOpenPanel}
                 setSelectedLayer={setSelectedLayer}
+                getLayerForSelection={getLayerForSelection}
               />
 
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
@@ -280,8 +288,30 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
                 <Polyline positions={[[userLocation.lat, userLocation.lon], selectedCoords]} color="#00bcd4" weight={3} dashArray="6 6" />
               )}
 
-              {gardens && <GeoJSON data={gardens} pointToLayer={(f, latlng) => L.marker(latlng, { icon: gardenIcon })} onEachFeature={(f, l) => { f.properties.type = 'garden'; handleFeatureClick(f, l); }} />}
-              {playgrounds && <GeoJSON data={playgrounds} style={playgroundStyle} pointToLayer={(f, latlng) => L.marker(latlng, { icon: selectedIcon })} onEachFeature={(f, l) => { f.properties.type = 'playground'; l.options.defaultStyle = playgroundStyle; handleFeatureClick(f, l); }} />}
+              {gardens && (
+                <GeoJSON
+                  data={gardens}
+                  pointToLayer={(f, latlng) => L.marker(latlng, { icon: gardenIcon })}
+                  onEachFeature={(f, l) => {
+                    f.properties.type = 'garden';
+                    gardenLayersRef.current.set(String(f.properties.id), l);
+                    handleFeatureClick(f, l);
+                  }}
+                />
+              )}
+              {playgrounds && (
+                <GeoJSON
+                  data={playgrounds}
+                  style={playgroundStyle}
+                  pointToLayer={(f, latlng) => L.marker(latlng, { icon: selectedIcon })}
+                  onEachFeature={(f, l) => {
+                    f.properties.type = 'playground';
+                    l.options.defaultStyle = playgroundStyle;
+                    playgroundLayersRef.current.set(String(f.properties.id), l);
+                    handleFeatureClick(f, l);
+                  }}
+                />
+              )}
             </MapContainer>
           </div>
         </div>

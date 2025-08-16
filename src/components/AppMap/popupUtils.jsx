@@ -30,11 +30,20 @@ export const createPopupContent = (feature) => {
   const isPlayground = props.type === 'playground' || props.category === 'playground';
   // Check if this is a park feature
   const isPark = props.type === 'park' || props.category === 'garden';
+  // Check type
+  const isGarden = props.type === 'garden' || props.category === 'garden';
   
   // Only show image for non-park features
   const displayImage = !isPark && props.image?.url ? 
     `<img src="${props.image.url}" alt="${name}" class="mt-4 w-[90%] mx-auto h-auto rounded block" />` : 
     '';
+
+  // Hero: garden = strom, jinak obrázek (pokud je)
+  const hero = isGarden
+    ? `<div class="popup-hero icon-hero">🌳</div>`
+    : (props.image?.url
+        ? `<img src="${props.image.url}" alt="${name}" class="mt-4 w-[90%] mx-auto h-auto rounded block" />`
+        : '');
 
   const propertiesList = props.properties?.length 
     ? props.properties
@@ -47,14 +56,14 @@ export const createPopupContent = (feature) => {
     : '';
 
   return `<div class="popup-content p-4 bg-white rounded">
-      ${displayImage}
+      ${hero}
       <h2 class="text-2xl font-bold mt-4 mb-2 text-primary">${name}</h2>
       <div class="divider my-2"></div>
       ${desc ? `<p class="my-3 text-base whitespace-normal break-words">${desc}</p><div class="divider my-2"></div>` : ''}
       <p class="text-sm text-base-content my-2">${address}</p>
       ${(urlButton || googleMapsButton || mapyCzButton) ? 
         `<div class="flex flex-wrap gap-2 my-3">
-          ${urlButton}
+          
           ${googleMapsButton}
           ${mapyCzButton}
         </div>` : ''}

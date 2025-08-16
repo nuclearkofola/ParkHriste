@@ -226,7 +226,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
   }, []);
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative h-full appmap-root ${className}`}>
       {loading && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-base-100/80">
           <div className="flex items-center space-x-3">
@@ -329,7 +329,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
             <button
               type="button"
               aria-label="Zavřít panel"
-              className="md:hidden btn btn-circle btn-ghost absolute right-2 top-2"
+              className="md:hidden btn btn-lg btn-circle btn-ghost absolute right-2 top-2"
               onClick={() => closePanel(mapRef.current)}
             >
               ✕
@@ -337,7 +337,12 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
             <div className="p-0 md:p-4 pb-20 md:pb-4">
               <div className="flex justify-between items-center mb-3 px-4 md:px-0">
                 <h2 className="text-xl md:text-2xl font-bold">Detail</h2>
-                <button className="btn btn-sm btn-ghost hidden md:inline-flex" onClick={() => closePanel(mapRef.current)}>Zavřít</button>
+                <button
+                  className="btn btn-lg btn-ghost hidden md:inline-flex"
+                  onClick={() => closePanel(mapRef.current)}
+                >
+                  Zavřít
+                </button>
               </div>
               <div className="md:card md:bg-base-100 md:shadow-md">
                 <div className="md:card-body md:p-0">
@@ -356,7 +361,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
             <div className="md:hidden sticky bottom-0 left-0 right-0 p-3 bg-base-100 border-t shadow-lg">
               <button
                 type="button"
-                className="btn btn-primary w-full"
+                className="btn btn-lg btn-primary w-full"
                 onClick={() => closePanel(mapRef.current)}
               >
                 Zavřít panel

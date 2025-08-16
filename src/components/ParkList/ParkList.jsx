@@ -611,8 +611,15 @@ const ParkList = ({ viewMode = 'both' }) => {
                     {/* Garden-specific information */}
                     {renderGardenInfo(item)}
                     
-                    <p className="text-xs text-base-content/70 line-clamp-2">
-                      {item.properties.content || item.properties.perex || item.properties.description || 'Žádný popis není k dispozici'}
+                    <p className="text-xs text-base-content/70 line-clamp-5">
+                      {item.properties.content
+                        || item.properties.description
+                        || item.properties.long_description
+                        || item.properties.longDescription
+                        || item.properties.full_description
+                        || item.properties.perex
+                        || item.properties.note
+                        || 'Žádný popis není k dispozici'}
                     </p>
                   </div>
                 </Link>
@@ -742,8 +749,15 @@ const ParkList = ({ viewMode = 'both' }) => {
                       )}
                     </p>
                     
-                    <p className="text-xs text-base-content/70 line-clamp-2">
-                      {item.properties.content || item.properties.perex || 'Žádný popis není k dispozici'}
+                    <p className="text-xs text-base-content/70 line-clamp-5">
+                      {item.properties.content
+                        || item.properties.description
+                        || item.properties.long_description
+                        || item.properties.longDescription
+                        || item.properties.full_description
+                        || item.properties.perex
+                        || item.properties.note
+                        || 'Žádný popis není k dispozici'}
                     </p>
                   </div>
                 </Link>

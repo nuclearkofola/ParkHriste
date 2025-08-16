@@ -57,24 +57,13 @@
 /* Add padding to drawer side to avoid header collision */
 .drawer-side > div {
   padding-top: 6rem; /* Add space for the header */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 
-/* První obrázek jako hero – vyplní šířku, výška dle viewportu */
-@media (min-width: 768px) {
-  .panel-content img:first-of-type {
-    width: 100%;
-    height: clamp(220px, 40vh, 600px);
-    object-fit: cover; /* Changed from contain to cover */
-    background: var(--fallback-b1, #f3f4f6);
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    display: block;
-  }
-  .panel-content h1,
-  .panel-content h2 {
-    margin-top: 1rem;
-  }
-}
+
 
 /* Upřesnění pro mobily: trochu vyšší hero */
 @media (max-width: 767px) {
@@ -83,12 +72,6 @@
   }
 }
 
-/* (Volitelné) jemnější typografie v detailu */
-.panel-content h1,
-.panel-content h2,
-.panel-content h3 {
-  margin-top: 0.75rem;
-}
 
 /* Plynulá změna šířky při otevření/ zavření panelu */
 .drawer-content,

@@ -20,7 +20,7 @@ function MapController({ selectedItemType, selectedItemId, gardens, playgrounds,
       // Pokud je vybrán objekt, najdi a otevři panel
       const data = selectedItemType === 'garden' ? gardens : playgrounds;
       if (!data || !data.features) return;
-      const feature = data.features.find(f => f.properties.id === selectedItemId);
+      const feature = data.features.find(f => String(f.properties.id) === String(selectedItemId));
       if (feature && feature.geometry.type === 'Point') {
         const [lng, lat] = feature.geometry.coordinates;
         map.setView([lat, lng], 17);
@@ -29,10 +29,12 @@ function MapController({ selectedItemType, selectedItemId, gardens, playgrounds,
         setTimeout(() => {
           // Najdi odpovídající layer a zvýrazni ho
           map.eachLayer((layer) => {
-            if (layer.feature &&
-                layer.feature.properties &&
-                layer.feature.properties.id === selectedItemId &&
-                layer.feature.properties.type === selectedItemType) {
+            if (
+              layer.feature &&
+              layer.feature.properties &&
+              String(layer.feature.properties.id) === String(selectedItemId) &&
+              layer.feature.properties.type === selectedItemType
+            ) {
               setSelectedLayer(layer);
               if (feature.properties.type === 'garden') {
                 layer.setIcon?.(gardenIcon);
@@ -205,7 +207,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
   let selectedCoords = null;
   if (selectedItemType && selectedItemId) {
     const data = selectedItemType === 'garden' ? gardens : playgrounds;
-    const feature = data?.features?.find(f => f.properties.id === selectedItemId);
+    const feature = data?.features?.find(f => String(f.properties.id) === String(selectedItemId));
     if (feature && feature.geometry.type === 'Point') {
       selectedCoords = [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
     }
@@ -292,7 +294,7 @@ const AppMap = ({ className, selectedItemType, selectedItemId }) => {
             className="drawer-overlay"
             onClick={() => closePanel(mapRef.current)}
           />
-          <div className="bg-base-100 text-base-content h-full w-full md:w-[50vw] md:max-w-[50vw] overflow-y-auto relative">
+          <div className="bg-base-100 text-base-content h-full w-full md:w-[50vw] md:max-w-[50vw] overflow-y-auto relative flex flex-col items-start justify-start">
             {/* Mobilní zavírací tlačítko (nahoře) */}
             <button
               type="button"

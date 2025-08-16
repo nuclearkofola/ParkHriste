@@ -14,7 +14,7 @@ export function MapPage() {
       </div>
       
       
-      <div className="w-full h-[80vh] min-h-[200px] min-w-[200px] rounded-lg shadow-lg overflow-hidden">
+      <div className="w-full h-[60vh] md:h-[65vh] lg:h-[70vh] min-h-[240px] min-w-[200px] rounded-lg shadow-lg overflow-hidden">
         <AppMap 
           className="w-full h-full"
           selectedItemType={type} 

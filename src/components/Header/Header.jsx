@@ -10,7 +10,7 @@ export function Header() {
   const isActive = (path) => location.pathname === path ? "btn-active" : "";
 
   // bez stínu jen na hlavní stránce
-  const headerClass = `sticky top-0 z-50 bg-base-100${location.pathname === "/" ? "" : " shadow-md"}`;
+  const headerClass = `sticky top-0 z-[9999] bg-base-100${location.pathname === "/" ? "" : " shadow-md"}`;
 
   return (
     <header className={headerClass}>

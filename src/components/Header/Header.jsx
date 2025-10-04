@@ -85,8 +85,8 @@ export function Header() {
               to="/seznam" 
               className={`px-4 py-2 hover:bg-base-200 ${isActive("/seznam")}`}
               onClick={closeMenu}
-            >
-              Hřiště
+              >
+                Seznam
             </Link>
             <Link 
               to="/o-nas" 

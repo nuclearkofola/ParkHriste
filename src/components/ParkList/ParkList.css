@@ -1,0 +1,20 @@
+/* Zajištění omezení textu na max 2 řádky */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Minimální výška položky seznamu */
+.park-list-container li {
+  min-height: 80px;
+}
+
+/* Vždy zobrazit ikonu vzdálenosti na stejné řádce jako název */
+.park-list-container h3 {
+  flex-shrink: 1;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

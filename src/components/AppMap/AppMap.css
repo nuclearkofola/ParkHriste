@@ -1,0 +1,117 @@
+@import 'leaflet/dist/leaflet.css';
+.custom-icon {
+  background-color: white;
+  border-radius: 50%;
+  border: 2px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+}
+
+/* styl pro park */
+.garden-icon {
+  background-color: rgba(255, 26, 26, 0.407);
+}
+/* styl pro hriste */
+.playground-icon {
+  background-color: rgba(205, 208, 0, 0.385);
+}
+
+/* styl pro popup */
+.leaflet-popup-content {
+  margin: 5px;
+  max-width: 300px;   /* Increased from 250px */
+  max-height: 350px;  /* Increased from 250px */
+  overflow-y: auto;
+}
+
+.leaflet-popup-content-wrapper {
+  padding: 0;
+  font-size: 0.9rem;
+  border-radius: 6px;
+}
+
+.popup-content img {
+  max-height: 180px;  /* Increased height */
+  object-fit: cover; /* Changed from contain to cover */
+  display: block;      /* Make it block to respect margins */
+  margin: 0 auto;      /* Center the image */
+}
+
+/* Plynulá animace pro změnu velikosti */
+.transition-all {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Panel (desktop) – lepší typografie a obrázky */
+.panel-content img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+}
+
+/* Add padding to drawer side to avoid header collision */
+.drawer-side > div {
+  padding-top: 0; /* Updated to remove padding */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  height: 100%; /* Added height to match map */
+}
+
+/* První obrázek jako hero – vyplní šířku, výška dle viewportu */
+@media (min-width: 768px) {
+  .panel-content img:first-of-type {
+    width: 100%;
+    height: clamp(220px, 40vh, 600px);
+    object-fit: cover; /* Changed from contain to cover */
+    background: var(--fallback-b1, #f3f4f6);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    display: block;
+  }
+  .panel-content h1,
+  .panel-content h2 {
+    margin-top: 1rem;
+  }
+}
+
+/* Upřesnění pro mobily: trochu vyšší hero */
+@media (max-width: 767px) {
+  .panel-content img:first-of-type {
+    height: clamp(220px, 50vh, 620px);
+  }
+}
+
+/* Plynulá změna šířky při otevření/ zavření panelu */
+.drawer-content,
+.drawer-side {
+  transition: width 0.25s ease, transform 0.25s ease;
+}
+
+/* AppMap wrapper + Drawer musí mít shodnou 100% výšku kontejneru */
+.appmap-root,
+.appmap-root .drawer,
+.appmap-root .drawer-content,
+.appmap-root .drawer-side {
+  height: 100%;
+}
+
+/* ...existing code... */
+.popup-hero.icon-hero {
+  width: 90%;
+  height: 180px;
+  margin: 1rem auto 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+  background: var(--fallback-b1, #f3f4f6);
+}
+/* ...existing code... */

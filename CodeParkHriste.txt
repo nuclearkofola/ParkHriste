@@ -1,0 +1,5 @@
+komponenta podle brakepoitu generuje jiny html / flexbox a při malem drawer
+
+seznam - tlašitko na seřazení - maly obrazek a maly popis, hledani , seřazeni
+
+

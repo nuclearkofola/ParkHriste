@@ -1,3 +1,1 @@
-/api/golemio-proxy/* /.netlify/functions/golemio-proxy/:splat 200
-/api/* /.netlify/functions/:splat 200
-/* /index.html 200
+# Redirect rules are defined in netlify.toml. This placeholder prevents stale rules in this file.

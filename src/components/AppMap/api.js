@@ -6,7 +6,7 @@ export const fetchGolemioData = async (endpoint, apiKey) => {
     let res;
     
     if (isProduction) {
-  // Na produkci použijeme Netlify Function jako proxy pomocí path stylu (/api/golemio-proxy/...) definovaného v public/_redirects
+  // Na produkci použijeme Netlify Function jako proxy pomocí path stylu (/api/golemio-proxy/...) definovaného v netlify.toml
       // Endpoint již typicky začíná "/v2/...", takže jej přímo připojíme
       const proxyUrl = `/api/golemio-proxy${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
       res = await fetch(proxyUrl);

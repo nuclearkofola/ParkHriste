@@ -24,19 +24,23 @@ Aplikace automaticky detekuje produkční prostředí a použije Netlify Functio
 
 Pokud nešlo otevřít URL jako `https://<site>/mapa` přímo (404 na Netlify), ujisti se, že je přesměrování SPA aktivní:
 
-1. V `netlify.toml` je pravidlo:
+1. V `netlify.toml` je nastavena sada redirectů:
    ```toml
+   [[redirects]]
+   from = "/api/golemio-proxy/*"
+   to = "/.netlify/functions/golemio-proxy/:splat"
+   status = 200
+
+   [[redirects]]
+   from = "/api/*"
+   to = "/.netlify/functions/:splat"
+   status = 200
+
    [[redirects]]
    from = "/*"
    to = "/index.html"
    status = 200
    ```
-2. Alternativně může být použit soubor `public/_redirects` s řádkem:
-   ```
-   /* /index.html 200
-   ```
-3. Příkaz `npm run build` musí vygenerovat `dist/_redirects` (pokud používáš souborovou variantu).
-
-Pokud používáš současně `_redirects` a `netlify.toml`, soubor `_redirects` má prioritu (Netlify jej zpracuje jako první). 
+2. Příkaz `npm run build` a následný deploy na Netlify použije tato pravidla – žádný soubor `_redirects` není potřeba.
 
 Při změně přesměrování vždy udělej nový deploy (ne pouze rebuild lokálně).

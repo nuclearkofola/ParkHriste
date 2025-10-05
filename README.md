@@ -19,3 +19,24 @@ first react projekt
 4. Publish directory: `dist`
 
 Aplikace automaticky detekuje produkční prostředí a použije Netlify Functions jako proxy pro Golemio API kvůli CORS omezením.
+
+## Deep link (SPA) routování
+
+Pokud nešlo otevřít URL jako `https://<site>/mapa` přímo (404 na Netlify), ujisti se, že je přesměrování SPA aktivní:
+
+1. V `netlify.toml` je pravidlo:
+   ```toml
+   [[redirects]]
+   from = "/*"
+   to = "/index.html"
+   status = 200
+   ```
+2. Alternativně může být použit soubor `public/_redirects` s řádkem:
+   ```
+   /* /index.html 200
+   ```
+3. Příkaz `npm run build` musí vygenerovat `dist/_redirects` (pokud používáš souborovou variantu).
+
+Pokud používáš současně `_redirects` a `netlify.toml`, soubor `_redirects` má prioritu (Netlify jej zpracuje jako první). 
+
+Při změně přesměrování vždy udělej nový deploy (ne pouze rebuild lokálně).

@@ -11,6 +11,7 @@ const buildCorsHeaders = () => ({
   'Access-Control-Max-Age': '86400',
 });
 
+// Support both ESM (export) and CommonJS (module.exports) when Netlify bundles functions.
 export const handler = async (event) => {
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
@@ -84,3 +85,10 @@ export const handler = async (event) => {
     return { statusCode: 500, headers: buildCorsHeaders(), body: JSON.stringify({ error: error.message }) };
   }
 };
+
+// CommonJS compatibility (in case Netlify runtime expects it)
+try {
+  if (typeof module !== 'undefined') {
+    module.exports = { handler };
+  }
+} catch (_) {}

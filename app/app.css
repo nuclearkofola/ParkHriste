@@ -2,11 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body {
-  @apply bg-white dark:bg-gray-950;
+:root {
+  color-scheme: light;
+}
 
-  @media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: dark) {
+  :root {
     color-scheme: dark;
   }
 }

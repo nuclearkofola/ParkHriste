@@ -6,8 +6,8 @@ export const fetchGolemioData = async (endpoint, apiKey) => {
     let res;
     
     if (isProduction) {
-      // Na produkci použijeme Netlify Function jako proxy
-      res = await fetch(`/.netlify/functions/golemio-proxy?path=${encodeURIComponent(endpoint)}`);
+      // Na produkci použijeme Netlify Function jako proxy (přes přesměrování /api/* -> functions)
+      res = await fetch(`/api/golemio-proxy?path=${encodeURIComponent(endpoint)}`);
     } else {
       // Lokálně voláme Golemio API přímo
       res = await fetch(`https://api.golemio.cz${endpoint}`, {

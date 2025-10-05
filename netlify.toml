@@ -7,6 +7,12 @@
   NODE_VERSION = "18"
 
 [[redirects]]
+  # Clean path style usage for golemio proxy (e.g. /api/golemio-proxy/v2/places)
+  from = "/api/golemio-proxy/*"
+  to = "/.netlify/functions/golemio-proxy/:splat"
+  status = 200
+
+[[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200

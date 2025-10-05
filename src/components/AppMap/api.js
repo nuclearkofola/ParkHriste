@@ -6,8 +6,10 @@ export const fetchGolemioData = async (endpoint, apiKey) => {
     let res;
     
     if (isProduction) {
-      // Na produkci použijeme Netlify Function jako proxy (přes přesměrování /api/* -> functions)
-      res = await fetch(`/api/golemio-proxy?path=${encodeURIComponent(endpoint)}`);
+      // Na produkci použijeme Netlify Function jako proxy pomocí path stylu (/api/golemio-proxy/...) definovaného v netlify.toml
+      // Endpoint již typicky začíná "/v2/...", takže jej přímo připojíme
+      const proxyUrl = `/api/golemio-proxy${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
+      res = await fetch(proxyUrl);
     } else {
       // Lokálně voláme Golemio API přímo
       res = await fetch(`https://api.golemio.cz${endpoint}`, {
@@ -30,3 +32,4 @@ export const fetchGolemioData = async (endpoint, apiKey) => {
     return null;
   }
 };
+// Poznámka: Redirect /api/* -> /.netlify/functions/:splat je definován v souboru netlify.toml.

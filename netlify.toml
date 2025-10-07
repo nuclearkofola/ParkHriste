@@ -1,4 +1,1 @@
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+{:from=>"/.netlify/functions/*", :to=>"/.netlify/functions/:splat", :status=>200} ## Invalid /.netlify path in redirect source
